@@ -15,6 +15,7 @@ import tv.quaint.savable.GroupManager;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
 import tv.quaint.timers.GroupSaver;
+import tv.quaint.timers.GuildPayout;
 import tv.quaint.timers.UserSaver;
 
 import java.io.File;
@@ -41,6 +42,9 @@ public class StreamlineGroups extends SimpleModule {
     static GroupSaver groupSaver;
     @Getter
     static UserSaver userSaver;
+    @Getter
+    static GuildPayout guildPayout;
+
     @Getter
     static MainListener mainListener;
 
@@ -80,6 +84,7 @@ public class StreamlineGroups extends SimpleModule {
 
         groupSaver = new GroupSaver();
         userSaver = new UserSaver();
+        guildPayout = new GuildPayout();
 
         GroupManager.registerClass(SavableGuild.class,  c -> {
             SavableGuild guild = GroupManager.getOrGetGuild(c);
@@ -100,6 +105,4 @@ public class StreamlineGroups extends SimpleModule {
         mainListener = new MainListener(this);
         new GroupsExpansion();
     }
-
-
 }
