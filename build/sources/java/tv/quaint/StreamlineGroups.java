@@ -106,5 +106,8 @@ public class StreamlineGroups extends SimpleModule {
         new GroupsExpansion();
     }
 
-
+    @Override
+    public void onDisable() {
+        mainListener.disable();
+    }
 }

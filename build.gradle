@@ -15,8 +15,8 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
     compileOnly "net.luckperms:api:5.4"
-    compileOnly files("C:\\Users\\nitra\\Dropbox\\Streamline\\Project\\StreamlineAPI\\build\\libs\\StreamlineAPI-Bungee-1.0.1.0-ht1.jar")
-    annotationProcessor files("C:\\Users\\nitra\\Dropbox\\Streamline\\Project\\StreamlineAPI\\build\\libs\\StreamlineAPI-Bungee-1.0.1.0-ht1.jar")
+    compileOnly files("C:\\Users\\nitra\\Dropbox\\Streamline\\Project\\StreamlineAPI\\build\\libs\\StreamlineAPI-Bungee-2.0.0.0.jar")
+    annotationProcessor files("C:\\Users\\nitra\\Dropbox\\Streamline\\Project\\StreamlineAPI\\build\\libs\\StreamlineAPI-Bungee-2.0.0.0.jar")
 }
 
 java {
