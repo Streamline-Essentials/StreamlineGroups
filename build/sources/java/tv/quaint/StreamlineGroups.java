@@ -7,6 +7,7 @@ import net.streamline.api.modules.dependencies.Dependency;
 import tv.quaint.commands.GuildCommand;
 import tv.quaint.commands.PartyCommand;
 import tv.quaint.configs.Configs;
+import tv.quaint.configs.DefaultRoles;
 import tv.quaint.configs.Messages;
 import tv.quaint.listeners.MainListener;
 import tv.quaint.placeholders.GroupsExpansion;
@@ -28,11 +29,14 @@ public class StreamlineGroups extends SimpleModule {
     static File usersFolder;
     @Getter
     static File groupsFolder;
-    @Getter
-    static Configs configs;
 
     @Getter
+    static Configs configs;
+    @Getter
     static Messages messages;
+    @Getter
+    static DefaultRoles defaultRoles;
+
     @Getter
     static GroupSaver groupSaver;
     @Getter
@@ -72,6 +76,7 @@ public class StreamlineGroups extends SimpleModule {
     public void onEnable() {
         configs = new Configs(this);
         messages = new Messages(this);
+        defaultRoles = new DefaultRoles(this);
 
         groupSaver = new GroupSaver();
         userSaver = new UserSaver();

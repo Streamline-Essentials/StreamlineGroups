@@ -35,6 +35,7 @@ public class Messages extends ModularizedConfig {
     public String errorWithoutFlag(GroupFlag flag) {
         return errorsBaseNotFlag().replace("%this_flag%", flag.toString());
     }
+
     public String errorsBaseNotFlag() {
         reloadResource();
 
@@ -75,6 +76,30 @@ public class Messages extends ModularizedConfig {
         reloadResource();
 
         return resource.getString("errors.base.cannot.promote.leader");
+    }
+
+    public String errorsBaseCannotPromoteSame() {
+        reloadResource();
+
+        return resource.getString("errors.base.cannot.promote.same");
+    }
+
+    public String errorsBaseCannotDemoteSelf() {
+        reloadResource();
+
+        return resource.getString("errors.base.cannot.demote.self");
+    }
+
+    public String errorsBaseCannotDemoteLeader() {
+        reloadResource();
+
+        return resource.getString("errors.base.cannot.demote.leader");
+    }
+
+    public String errorsBaseCannotDemoteSame() {
+        reloadResource();
+
+        return resource.getString("errors.base.cannot.demote.same");
     }
 
     public String guildsCreate() {
@@ -155,10 +180,16 @@ public class Messages extends ModularizedConfig {
         return resource.getString("guilds.deny.other");
     }
 
-    public String guildsList() {
+    public String guildsListMain() {
         reloadResource();
 
-        return resource.getString("guilds.list");
+        return resource.getString("guilds.list.main");
+    }
+
+    public String guildsListRole() {
+        reloadResource();
+
+        return resource.getString("guilds.list.role");
     }
 
     public String guildsDisbandSender() {
@@ -213,6 +244,48 @@ public class Messages extends ModularizedConfig {
         reloadResource();
 
         return resource.getString("guilds.demote.other");
+    }
+
+    public String guildsLeaveSender() {
+        reloadResource();
+
+        return resource.getString("guilds.leave.sender");
+    }
+
+    public String guildsLeaveMembers() {
+        reloadResource();
+
+        return resource.getString("guilds.leave.members");
+    }
+
+    public String guildsLeaveOther() {
+        reloadResource();
+
+        return resource.getString("guilds.leave.other");
+    }
+
+    public String guildsChat() {
+        reloadResource();
+
+        return resource.getString("parties.chat");
+    }
+
+    public String guildsRenameSender() {
+        reloadResource();
+
+        return resource.getString("guilds.rename.sender");
+    }
+
+    public String guildsRenameMembers() {
+        reloadResource();
+
+        return resource.getString("guilds.rename.members");
+    }
+
+    public String guildsRenameOther() {
+        reloadResource();
+
+        return resource.getString("guilds.rename.other");
     }
 
     public String partiesCreate() {
@@ -293,10 +366,16 @@ public class Messages extends ModularizedConfig {
         return resource.getString("parties.deny.other");
     }
 
-    public String partiesList() {
+    public String partiesListMain() {
         reloadResource();
 
-        return resource.getString("parties.list");
+        return resource.getString("parties.list.main");
+    }
+
+    public String partiesListRole() {
+        reloadResource();
+
+        return resource.getString("parties.list.role");
     }
 
     public String partiesDisbandSender() {
@@ -351,5 +430,29 @@ public class Messages extends ModularizedConfig {
         reloadResource();
 
         return resource.getString("parties.demote.other");
+    }
+
+    public String partiesLeaveSender() {
+        reloadResource();
+
+        return resource.getString("parties.leave.sender");
+    }
+
+    public String partiesLeaveMembers() {
+        reloadResource();
+
+        return resource.getString("parties.leave.members");
+    }
+
+    public String partiesLeaveOther() {
+        reloadResource();
+
+        return resource.getString("parties.leave.other");
+    }
+
+    public String partiesChat() {
+        reloadResource();
+
+        return resource.getString("parties.chat");
     }
 }

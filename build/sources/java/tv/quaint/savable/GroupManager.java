@@ -8,17 +8,14 @@ import net.streamline.api.configs.*;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.savables.SavableResource;
 import net.streamline.api.savables.users.SavableUser;
-import net.streamline.base.Streamline;
-import net.streamline.utils.MathUtils;
-import net.streamline.utils.MessagingUtils;
 import tv.quaint.StreamlineGroups;
+import tv.quaint.savable.flags.GroupFlag;
 import tv.quaint.savable.guilds.CreateGuildEvent;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.CreatePartyEvent;
 import tv.quaint.savable.parties.SavableParty;
 
 import java.io.File;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -59,11 +56,16 @@ public class GroupManager {
     }
 
     public static GroupedUser getOrGetGroupedUser(String uuid) {
+        return getOrGetGroupedUser(uuid, true);
+    }
+
+    public static GroupedUser getOrGetGroupedUser(String uuid, boolean load) {
         GroupedUser user = getGroupedUser(uuid);
         if (user != null) return user;
 
-        return new GroupedUser(uuid);
+        return new GroupedUser(uuid, load);
     }
+
     @Getter
     private static ConcurrentHashMap<Class<? extends SavableGroup>, List<SavableGroup>> loadedGroups = new ConcurrentHashMap<>();
 
@@ -257,19 +259,19 @@ public class GroupManager {
         ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().guildsSendInviteSender()
                 .replace("%this_other%", toInvite.getName())
                 .replace("%this_sender%", sender.getName())
-                .replace("%this_leader%", other.getName())
+                .replace("%this_owner%", guild.owner.getName())
         );
         ModuleUtils.sendMessage(toInvite, StreamlineGroups.getMessages().guildsSendInviteOther()
                 .replace("%this_other%", toInvite.getName())
                 .replace("%this_sender%", sender.getName())
-                .replace("%this_leader%", other.getName())
+                .replace("%this_owner%", guild.owner.getName())
         );
-        guild.members.forEach(a -> {
+        guild.getAllUsers().forEach(a -> {
             if (a.equals(sender)) return;
             ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().guildsSendInviteMembers()
                     .replace("%this_other%", toInvite.getName())
                     .replace("%this_sender%", sender.getName())
-                    .replace("%this_leader%", other.getName())
+                    .replace("%this_owner%", guild.owner.getName())
             );
         });
     }
@@ -294,19 +296,19 @@ public class GroupManager {
         ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().partiesSendInviteSender()
                 .replace("%this_other%", toInvite.getName())
                 .replace("%this_sender%", sender.getName())
-                .replace("%this_leader%", other.getName())
+                .replace("%this_owner%", party.owner.getName())
         );
         ModuleUtils.sendMessage(toInvite, StreamlineGroups.getMessages().partiesSendInviteOther()
                 .replace("%this_other%", toInvite.getName())
                 .replace("%this_sender%", sender.getName())
-                .replace("%this_leader%", other.getName())
+                .replace("%this_owner%", party.owner.getName())
         );
-        party.members.forEach(a -> {
+        party.getAllUsers().forEach(a -> {
             if (a.equals(sender)) return;
             ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().partiesSendInviteMembers()
                     .replace("%this_other%", toInvite.getName())
                     .replace("%this_sender%", sender.getName())
-                    .replace("%this_leader%", other.getName())
+                    .replace("%this_owner%", party.owner.getName())
             );
         });
     }
@@ -339,19 +341,19 @@ public class GroupManager {
         ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().guildsAcceptSender()
                 .replace("%this_other%", invited.getName())
                 .replace("%this_sender%", sender.getName())
-                .replace("%this_leader%", other.getName())
+                .replace("%this_owner%", guild.owner.getName())
         );
         ModuleUtils.sendMessage(other, StreamlineGroups.getMessages().guildsAcceptOther()
                 .replace("%this_other%", invited.getName())
                 .replace("%this_sender%", sender.getName())
-                .replace("%this_leader%", other.getName())
+                .replace("%this_owner%", guild.owner.getName())
         );
-        guild.totalMembers.forEach(a -> {
+        guild.getAllUsers().forEach(a -> {
             if (a.equals(sender)) return;
             ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().guildsAcceptMembers()
                     .replace("%this_other%", invited.getName())
                     .replace("%this_sender%", sender.getName())
-                    .replace("%this_leader%", other.getName())
+                    .replace("%this_owner%", guild.owner.getName())
             );
         });
     }
@@ -384,19 +386,19 @@ public class GroupManager {
         ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().partiesAcceptSender()
                 .replace("%this_other%", invited.getName())
                 .replace("%this_sender%", sender.getName())
-                .replace("%this_leader%", other.getName())
+                .replace("%this_owner%", party.owner.getName())
         );
         ModuleUtils.sendMessage(other, StreamlineGroups.getMessages().partiesAcceptOther()
                 .replace("%this_other%", invited.getName())
                 .replace("%this_sender%", sender.getName())
-                .replace("%this_leader%", other.getName())
+                .replace("%this_owner%", party.owner.getName())
         );
-        party.totalMembers.forEach(a -> {
+        party.getAllUsers().forEach(a -> {
             if (a.equals(sender)) return;
             ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().partiesAcceptMembers()
                     .replace("%this_other%", invited.getName())
                     .replace("%this_sender%", sender.getName())
-                    .replace("%this_leader%", other.getName())
+                    .replace("%this_owner%", party.owner.getName())
             );
         });
     }
@@ -420,19 +422,19 @@ public class GroupManager {
         ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().guildsDenySender()
                 .replace("%this_other%", invited.getName())
                 .replace("%this_sender%", sender.getName())
-                .replace("%this_leader%", other.getName())
+                .replace("%this_owner%", guild.owner.getName())
         );
         ModuleUtils.sendMessage(invited, StreamlineGroups.getMessages().guildsDenyOther()
                 .replace("%this_other%", invited.getName())
                 .replace("%this_sender%", sender.getName())
-                .replace("%this_leader%", other.getName())
+                .replace("%this_owner%", guild.owner.getName())
         );
-        guild.members.forEach(a -> {
+        guild.getAllUsers().forEach(a -> {
             if (a.equals(sender)) return;
             ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().guildsDenyMembers()
                     .replace("%this_other%", invited.getName())
                     .replace("%this_sender%", sender.getName())
-                    .replace("%this_leader%", other.getName())
+                    .replace("%this_owner%", guild.owner.getName())
             );
         });
     }
@@ -456,19 +458,19 @@ public class GroupManager {
         ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().partiesDenySender()
                 .replace("%this_other%", invited.getName())
                 .replace("%this_sender%", sender.getName())
-                .replace("%this_leader%", other.getName())
+                .replace("%this_owner%", party.owner.getName())
         );
         ModuleUtils.sendMessage(invited, StreamlineGroups.getMessages().partiesDenyOther()
                 .replace("%this_other%", invited.getName())
                 .replace("%this_sender%", sender.getName())
-                .replace("%this_leader%", other.getName())
+                .replace("%this_owner%", party.owner.getName())
         );
-        party.members.forEach(a -> {
+        party.getAllUsers().forEach(a -> {
             if (a.equals(sender)) return;
             ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().partiesDenyMembers()
                     .replace("%this_other%", invited.getName())
                     .replace("%this_sender%", sender.getName())
-                    .replace("%this_leader%", other.getName())
+                    .replace("%this_owner%", party.owner.getName())
             );
         });
     }
@@ -482,19 +484,23 @@ public class GroupManager {
             return;
         }
 
-        List<String> moderators = new ArrayList<>();
-        guild.moderators.forEach(a -> moderators.add(a.latestName));
-        String moderatorList = ModuleUtils.getListAsFormattedString(moderators);
+        StringBuilder forRoles = new StringBuilder();
 
-        List<String> members = new ArrayList<>();
-        guild.members.forEach(a -> members.add(a.latestName));
-        String memberList = ModuleUtils.getListAsFormattedString(members);
+        guild.groupRoleMap.getRolesOrdered().descendingMap().values().forEach(a -> {
+            List<String> formattedNames = new ArrayList<>();
+            guild.groupRoleMap.getUsersOf(a).forEach(act -> formattedNames.add(ModuleUtils.getFormatted(act)));
+            forRoles.append(StreamlineGroups.getMessages().guildsListRole()
+                    .replace("%this_role_identifier%", a.getIdentifier())
+                    .replace("%this_role_name%", a.getName())
+                    .replace("%this_role_max%", String.valueOf(a.getMax()))
+                    .replace("%this_role_priority%", String.valueOf(a.getPriority()))
+                    .replace("%this_role_flags%", ModuleUtils.getListAsFormattedString(a.getFlags()))
+                    .replace("%this_role_members%", ModuleUtils.getListAsFormattedString(formattedNames))
+            );
+        });
 
-        ModuleUtils.sendMessage(sender,
-                StreamlineGroups.getMessages().guildsList()
-                        .replace("%this_leader%", other.getName())
-                        .replace("%moderator_list%", moderatorList)
-                        .replace("%member_list%", memberList)
+        ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().guildsListMain()
+                .replace("%this_for_roles%", forRoles)
         );
     }
 
@@ -507,19 +513,23 @@ public class GroupManager {
             return;
         }
 
-        List<String> moderators = new ArrayList<>();
-        party.moderators.forEach(a -> moderators.add(a.latestName));
-        String moderatorList = ModuleUtils.getListAsFormattedString(moderators);
+        StringBuilder forRoles = new StringBuilder();
 
-        List<String> members = new ArrayList<>();
-        party.members.forEach(a -> members.add(a.latestName));
-        String memberList = ModuleUtils.getListAsFormattedString(members);
+        party.groupRoleMap.getRolesOrdered().descendingMap().values().forEach(a -> {
+            List<String> formattedNames = new ArrayList<>();
+            party.groupRoleMap.getUsersOf(a).forEach(act -> formattedNames.add(ModuleUtils.getFormatted(act)));
+            forRoles.append(StreamlineGroups.getMessages().partiesListRole()
+                    .replace("%this_role_identifier%", a.getIdentifier())
+                    .replace("%this_role_name%", a.getName())
+                    .replace("%this_role_max%", String.valueOf(a.getMax()))
+                    .replace("%this_role_priority%", String.valueOf(a.getPriority()))
+                    .replace("%this_role_flags%", ModuleUtils.getListAsFormattedString(a.getFlags()))
+                    .replace("%this_role_members%", ModuleUtils.getListAsFormattedString(formattedNames))
+            );
+        });
 
-        ModuleUtils.sendMessage(sender,
-                StreamlineGroups.getMessages().partiesList()
-                        .replace("%this_leader%", other.getName())
-                        .replace("%moderator_list%", moderatorList)
-                        .replace("%member_list%", memberList)
+        ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().partiesListMain()
+                .replace("%this_for_roles%", forRoles)
         );
     }
 
@@ -532,29 +542,24 @@ public class GroupManager {
             return;
         }
 
-        List<SavableUser> members = new ArrayList<>(guild.totalMembers);
-
-        for (SavableUser user : members) {
-            GroupedUser gu = getOrGetGroupedUser(user.uuid);
-            gu.disassociateWith(SavableGuild.class);
-
+        for (SavableUser user : guild.getAllUsers()) {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsDisbandSender()
                         .replace("%this_sender%", sender.getName())
-                        .replace("%this_leader%", other.getName())
+                        .replace("%this_owner%", guild.owner.getName())
                 );
                 continue;
             }
-            if (user.equals(guild.leader)) {
+            if (user.equals(guild.owner)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsDisbandLeader()
                         .replace("%this_sender%", sender.getName())
-                        .replace("%this_leader%", other.getName())
+                        .replace("%this_owner%", guild.owner.getName())
                 );
                 continue;
             }
-            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsDisbandLeader()
+            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsDisbandMembers()
                     .replace("%this_sender%", sender.getName())
-                    .replace("%this_leader%", other.getName())
+                    .replace("%this_owner%", guild.owner.getName())
             );
         }
 
@@ -570,32 +575,435 @@ public class GroupManager {
             return;
         }
 
-        List<SavableUser> members = new ArrayList<>(party.totalMembers);
-
-        for (SavableUser user : members) {
-            GroupedUser gu = getOrGetGroupedUser(user.uuid);
-            gu.disassociateWith(SavableParty.class);
-
+        for (SavableUser user : party.getAllUsers()) {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesDisbandSender()
                         .replace("%this_sender%", sender.getName())
-                        .replace("%this_leader%", other.getName())
+                        .replace("%this_owner%", party.owner.getName())
                 );
                 continue;
             }
-            if (user.equals(party.leader)) {
+            if (user.equals(party.owner)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesDisbandLeader()
                         .replace("%this_sender%", sender.getName())
-                        .replace("%this_leader%", other.getName())
+                        .replace("%this_owner%", party.owner.getName())
                 );
                 continue;
             }
-            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesDisbandLeader()
+            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesDisbandMembers()
                     .replace("%this_sender%", sender.getName())
-                    .replace("%this_leader%", other.getName())
+                    .replace("%this_owner%", party.owner.getName())
             );
         }
 
         party.disband();
+    }
+
+    public static void promoteGuild(SavableUser sender, SavableUser other, SavableUser promote) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+        SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
+
+        if (guild == null) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotExists());
+            return;
+        }
+
+        if (! guild.hasMember(promote)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
+            return;
+        }
+
+        if (promote.equals(sender)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotPromoteSelf());
+            return;
+        }
+
+        if (guild.getRole(promote).hasFlag(GroupFlag.LEADER)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotPromoteLeader());
+            return;
+        }
+
+        if (guild.hasMember(sender)) {
+            if (! guild.userHasFlag(sender, GroupFlag.PROMOTE)) {
+                ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorWithoutFlag(GroupFlag.PROMOTE));
+                return;
+            }
+            if (guild.getRole(promote).equals(guild.getRole(sender))) {
+                ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotPromoteSame());
+                return;
+            }
+        }
+
+        for (SavableUser user : guild.getAllUsers()) {
+            if (user.equals(sender)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteSender()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", guild.owner.getName())
+                );
+                continue;
+            }
+            if (user.equals(promote)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteOther()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", guild.owner.getName())
+                );
+                continue;
+            }
+            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteMembers()
+                    .replace("%this_sender%", sender.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_owner%", guild.owner.getName())
+            );
+        }
+
+        guild.promoteUser(promote);
+    }
+
+    public static void promoteParty(SavableUser sender, SavableUser other, SavableUser promote) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+        SavableParty party = groupedUser.getGroup(SavableParty.class);
+
+        if (party == null) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotExists());
+            return;
+        }
+
+        if (! party.hasMember(promote)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
+            return;
+        }
+
+        if (promote.equals(sender)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotPromoteSelf());
+            return;
+        }
+
+        if (party.getRole(promote).hasFlag(GroupFlag.LEADER)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotPromoteLeader());
+            return;
+        }
+
+        if (party.hasMember(sender)) {
+            if (! party.userHasFlag(sender, GroupFlag.PROMOTE)) {
+                ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorWithoutFlag(GroupFlag.PROMOTE));
+                return;
+            }
+            if (party.getRole(promote).equals(party.getRole(sender))) {
+                ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotPromoteSame());
+                return;
+            }
+        }
+
+        for (SavableUser user : party.getAllUsers()) {
+            if (user.equals(sender)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteSender()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", party.owner.getName())
+                );
+                continue;
+            }
+            if (user.equals(promote)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteOther()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", party.owner.getName())
+                );
+                continue;
+            }
+            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteMembers()
+                    .replace("%this_sender%", sender.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_owner%", party.owner.getName())
+            );
+        }
+
+        party.promoteUser(promote);
+    }
+
+    public static void demoteGuild(SavableUser sender, SavableUser other, SavableUser promote) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+        SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
+
+        if (guild == null) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotExists());
+            return;
+        }
+
+        if (! guild.hasMember(promote)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
+            return;
+        }
+
+        if (promote.equals(sender)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotDemoteSelf());
+            return;
+        }
+
+        if (guild.getRole(promote).hasFlag(GroupFlag.LEADER)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotDemoteLeader());
+            return;
+        }
+
+        if (guild.hasMember(sender)) {
+            if (! guild.userHasFlag(sender, GroupFlag.DEMOTE)) {
+                ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorWithoutFlag(GroupFlag.DEMOTE));
+                return;
+            }
+            if (guild.getRole(promote).equals(guild.getRole(sender))) {
+                ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotDemoteSame());
+                return;
+            }
+        }
+
+        for (SavableUser user : guild.getAllUsers()) {
+            if (user.equals(sender)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsDemoteSender()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", guild.owner.getName())
+                );
+                continue;
+            }
+            if (user.equals(promote)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsDemoteOther()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", guild.owner.getName())
+                );
+                continue;
+            }
+            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsDemoteMembers()
+                    .replace("%this_sender%", sender.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_owner%", guild.owner.getName())
+            );
+        }
+
+        guild.demoteUser(promote);
+    }
+
+    public static void demoteParty(SavableUser sender, SavableUser other, SavableUser promote) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+        SavableParty party = groupedUser.getGroup(SavableParty.class);
+
+        if (party == null) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotExists());
+            return;
+        }
+
+        if (! party.hasMember(promote)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
+            return;
+        }
+
+        if (promote.equals(sender)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotDemoteSelf());
+            return;
+        }
+
+        if (party.getRole(promote).hasFlag(GroupFlag.LEADER)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotDemoteLeader());
+            return;
+        }
+
+        if (party.hasMember(sender)) {
+            if (! party.userHasFlag(sender, GroupFlag.DEMOTE)) {
+                ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorWithoutFlag(GroupFlag.DEMOTE));
+                return;
+            }
+            if (party.getRole(promote).equals(party.getRole(sender))) {
+                ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotDemoteSame());
+                return;
+            }
+        }
+
+        for (SavableUser user : party.getAllUsers()) {
+            if (user.equals(sender)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesDemoteSender()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", party.owner.getName())
+                );
+                continue;
+            }
+            if (user.equals(promote)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesDemoteOther()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", party.owner.getName())
+                );
+                continue;
+            }
+            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesDemoteMembers()
+                    .replace("%this_sender%", sender.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_owner%", party.owner.getName())
+            );
+        }
+
+        party.demoteUser(promote);
+    }
+
+    public static void leaveGuild(SavableUser sender, SavableUser other) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+        SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
+
+        if (guild == null) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotExists());
+            return;
+        }
+
+        if (! guild.hasMember(other)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
+            return;
+        }
+
+        for (SavableUser user : guild.getAllUsers()) {
+            if (user.equals(sender)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsLeaveSender()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", guild.owner.getName())
+                );
+                continue;
+            }
+            if (user.equals(other)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsLeaveOther()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", guild.owner.getName())
+                );
+                continue;
+            }
+            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsLeaveMembers()
+                    .replace("%this_sender%", sender.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_owner%", guild.owner.getName())
+            );
+        }
+
+        guild.removeMember(other);
+    }
+
+    public static void leaveParty(SavableUser sender, SavableUser other) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+        SavableParty party = groupedUser.getGroup(SavableParty.class);
+
+        if (party == null) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotExists());
+            return;
+        }
+
+        if (! party.hasMember(other)) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
+            return;
+        }
+
+        for (SavableUser user : party.getAllUsers()) {
+            if (user.equals(sender)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesLeaveSender()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", party.owner.getName())
+                );
+                continue;
+            }
+            if (user.equals(other)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesLeaveOther()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", party.owner.getName())
+                );
+                continue;
+            }
+            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesLeaveMembers()
+                    .replace("%this_sender%", sender.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_owner%", party.owner.getName())
+            );
+        }
+
+        party.removeMember(other);
+    }
+
+    public static void chatGuild(SavableUser sender, SavableUser other, String message) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+        SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
+
+        if (guild == null) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotExists());
+            return;
+        }
+
+        for (SavableUser user : guild.getAllUsers()) {
+            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsChat()
+                    .replace("%this_sender%", sender.getName())
+                    .replace("%this_message%", message)
+            );
+        }
+    }
+
+    public static void chatParty(SavableUser sender, SavableUser other, String message) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+        SavableParty party = groupedUser.getGroup(SavableParty.class);
+
+        if (party == null) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotExists());
+            return;
+        }
+
+        for (SavableUser user : party.getAllUsers()) {
+            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesChat()
+                    .replace("%this_sender%", sender.getName())
+                    .replace("%this_message%", message)
+            );
+        }
+    }
+
+    public static void renameGuild(SavableUser sender, SavableUser other, String name) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+        SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
+
+        if (guild == null) {
+            ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotExists());
+            return;
+        }
+
+        String oldName = guild.name;
+
+        for (SavableUser user : guild.getAllUsers()) {
+            if (user.equals(sender)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsRenameSender()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", guild.owner.getName())
+                        .replace("%this_name_new%", name)
+                        .replace("%this_name_old%", oldName)
+                );
+                continue;
+            }
+            if (user.equals(guild.owner)) {
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsRenameOther()
+                        .replace("%this_sender%", sender.getName())
+                        .replace("%this_other%", other.getName())
+                        .replace("%this_owner%", guild.owner.getName())
+                        .replace("%this_name_new%", name)
+                        .replace("%this_name_old%", oldName)
+                );
+                continue;
+            }
+            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsRenameMembers()
+                    .replace("%this_sender%", sender.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_leader%", guild.owner.getName())
+                    .replace("%this_name_new%", name)
+                    .replace("%this_name_old%", oldName)
+            );
+        }
+
+        guild.setNameReturnOld(name);
     }
 }

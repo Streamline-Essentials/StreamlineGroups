@@ -28,6 +28,9 @@ public abstract class SavableGroup extends SavableResource {
         super(uuid, GroupManager.newStorageResource(uuid, clazz));
         this.owner = ModuleUtils.getOrGetUser(uuid);
         groupRoleMap = new GroupRoleMap(this);
+        groupRoleMap.applyUser(groupRoleMap.getRolesOrdered().lastEntry().getValue(), this.owner);
+        GroupedUser u = GroupManager.getOrGetGroupedUser(uuid, false);
+        u.associateWith(this.getClass(), this.uuid);
         GroupManager.loadGroup(this);
     }
 
@@ -96,6 +99,16 @@ public abstract class SavableGroup extends SavableResource {
 
     public void addMember(SavableUser user) {
         groupRoleMap.addUser(user);
+        remFromInvites(user);
+        GroupedUser u = GroupManager.getOrGetGroupedUser(user.uuid);
+        u.associateWith(this.getClass(), this.uuid);
+    }
+
+    public void removeMember(SavableUser user) {
+        groupRoleMap.removeUserAll(user);
+        remFromInvites(user);
+        GroupedUser u = GroupManager.getOrGetGroupedUser(user.uuid);
+        u.disassociateWith(this.getClass(), this.uuid);
     }
 
     public void setOwner(SavableUser user) {
@@ -148,7 +161,9 @@ public abstract class SavableGroup extends SavableResource {
 
     public void remFromInvites(SavableUser user){
         if (! getInvitesAsUsers().contains(user)) return;
-        invites.remove(getInviteTicker(user));
+        InviteTicker<?> ticker = getInviteTicker(user);
+        ticker.cancel();
+        invites.remove(ticker);
     }
 
     public void remFromInvitesCompletely(SavableUser user){
@@ -236,14 +251,14 @@ public abstract class SavableGroup extends SavableResource {
     }
 
     public void disband(){
-        storageResource.delete();
+        for (SavableUser member : groupRoleMap.getAllUsers()) {
+            GroupedUser user = GroupManager.getOrGetGroupedUser(member.uuid);
+            user.disassociateWith(this.getClass(), this.uuid);
+        }
 
         GroupManager.removeGroupOf(this);
 
-        for (SavableUser member : groupRoleMap.getAllUsers()) {
-            GroupedUser user = GroupManager.getOrGetGroupedUser(member.uuid);
-            user.disassociateWith(this.getClass());
-        }
+        storageResource.delete();
 
         try {
             dispose();

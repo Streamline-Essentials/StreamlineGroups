@@ -3,10 +3,9 @@ package tv.quaint.placeholders;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.placeholder.RATExpansion;
 import net.streamline.api.savables.users.SavableUser;
-import net.streamline.base.Streamline;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.GroupManager;
-import tv.quaint.savable.SavableGroup;
+import tv.quaint.savable.SavableGroupRole;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
 
@@ -54,20 +53,33 @@ public class GroupsExpansion extends RATExpansion {
             if (params.equals("guild_xp_current")) {
                 return String.valueOf(guild.currentXP);
             }
-            if (params.equals("guild_moderators_size")) {
-                return String.valueOf(guild.moderators.size());
-            }
-            if (params.equals("guild_members_size")) {
-                return String.valueOf(guild.members.size());
+            if (params.startsWith("guild_role_")) {
+                SavableGroupRole role = guild.getRole(savableUser);
+                if (role == null) return null;
+                if (params.equals("guild_role_identifier")) {
+                    return String.valueOf(role.getIdentifier());
+                }
+                if (params.equals("guild_role_name")) {
+                    return String.valueOf(role.getName());
+                }
+                if (params.equals("guild_role_max")) {
+                    return String.valueOf(role.getMax());
+                }
+                if (params.equals("guild_role_priority")) {
+                    return String.valueOf(role.getPriority());
+                }
+                if (params.equals("guild_role_flags")) {
+                    return ModuleUtils.getListAsFormattedString(role.getFlags());
+                }
             }
             if (params.equals("guild_total_size")) {
-                return String.valueOf(guild.totalMembers.size());
+                return String.valueOf(guild.getAllUsers().size());
             }
             if (params.equals("guild_size_max_current")) {
                 return String.valueOf(guild.maxSize);
             }
             if (params.equals("guild_size_max_absolute")) {
-                return String.valueOf(guild.getMaxSize(guild.leader));
+                return String.valueOf(guild.getMaxSize(guild.owner));
             }
             if (params.equals("guild_name")) {
                 return guild.name;
@@ -78,32 +90,45 @@ public class GroupsExpansion extends RATExpansion {
             if (party == null) {
                 return null;
             }
-            if (params.equals("party_moderators_size")) {
-                return String.valueOf(party.moderators.size());
-            }
-            if (params.equals("party_members_size")) {
-                return String.valueOf(party.members.size());
+            if (params.startsWith("party_role_")) {
+                SavableGroupRole role = party.getRole(savableUser);
+                if (role == null) return null;
+                if (params.equals("party_role_identifier")) {
+                    return String.valueOf(role.getIdentifier());
+                }
+                if (params.equals("party_role_name")) {
+                    return String.valueOf(role.getName());
+                }
+                if (params.equals("party_role_max")) {
+                    return String.valueOf(role.getMax());
+                }
+                if (params.equals("party_role_priority")) {
+                    return String.valueOf(role.getPriority());
+                }
+                if (params.equals("party_role_flags")) {
+                    return ModuleUtils.getListAsFormattedString(role.getFlags());
+                }
             }
             if (params.equals("party_total_size")) {
-                return String.valueOf(party.totalMembers.size());
+                return String.valueOf(party.getAllUsers().size());
             }
             if (params.equals("party_size_max_current")) {
                 return String.valueOf(party.maxSize);
             }
             if (params.equals("party_size_max_absolute")) {
-                return String.valueOf(party.getMaxSize(party.leader));
+                return String.valueOf(party.getMaxSize(party.owner));
             }
             if (params.equals("guild_leader_absolute")) {
-                return ModuleUtils.getAbsolute(party.leader);
+                return ModuleUtils.getAbsolute(party.owner);
             }
             if (params.equals("guild_leader_formatted")) {
-                return ModuleUtils.getFormatted(party.leader);
+                return ModuleUtils.getFormatted(party.owner);
             }
             if (params.equals("guild_leader_absolute_onlined")) {
-                return ModuleUtils.getOffOnAbsolute(party.leader);
+                return ModuleUtils.getOffOnAbsolute(party.owner);
             }
             if (params.equals("guild_leader_formatted_onlined")) {
-                return ModuleUtils.getOffOnFormatted(party.leader);
+                return ModuleUtils.getOffOnFormatted(party.owner);
             }
         }
         return null;

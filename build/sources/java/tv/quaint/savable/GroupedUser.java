@@ -15,8 +15,12 @@ public class GroupedUser extends SavableResource {
     private ConcurrentHashMap<Class<? extends SavableGroup>, String> associatedGroups = new ConcurrentHashMap<>();
 
     public GroupedUser(String uuid) {
+        this(uuid, true);
+    }
+
+    public GroupedUser(String uuid, boolean load) {
         super(uuid, GroupManager.newStorageResourceUsers(uuid, GroupedUser.class));
-        loadAfter();
+        if (load) loadAfter();
     }
 
     @Override
@@ -45,6 +49,7 @@ public class GroupedUser extends SavableResource {
 
         loadAllAssociatedGroups();
     }
+
     @Override
     public void saveAll() {
         if (associatedGroups == null) return;
@@ -59,8 +64,8 @@ public class GroupedUser extends SavableResource {
         saveAll();
     }
 
-    public void disassociateWith(Class<? extends SavableGroup> groupType) {
-        getAssociatedGroups().remove(groupType);
+    public void disassociateWith(Class<? extends SavableGroup> groupType, String uuidOfGroup) {
+        getAssociatedGroups().put(groupType, "null");
         saveAll();
     }
 
@@ -68,7 +73,7 @@ public class GroupedUser extends SavableResource {
         String uuidOfGroup = getAssociatedGroups().get(type);
         if (uuidOfGroup == null) return null;
 
-        return GroupManager.getGroupOfUser(type, uuidOfGroup);
+        return GroupManager.getGroup(type, uuidOfGroup);
     }
 
     public void loadAllAssociatedGroups() {
