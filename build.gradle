@@ -7,6 +7,13 @@ plugins {
 group 'tv.quaint'
 version '1.0-SNAPSHOT'
 
+project.ext {
+    def dir = layout.buildDirectory.dir('C:\\Users\\nitra\\Dropbox\\Streamline\\Project\\StreamlineAPI\\build\\libs')
+    File[] files = dir.get().getAsFile().listFiles();
+    File dependFile = files[0]
+    fileLocation = dependFile.toPath().toString();
+}
+
 repositories {
     mavenCentral()
 }
@@ -15,8 +22,8 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
     compileOnly "net.luckperms:api:5.4"
-    compileOnly files("C:\\Users\\nitra\\Dropbox\\Streamline\\Project\\StreamlineAPI\\build\\libs\\StreamlineAPI-Bungee-2.0.0.0.jar")
-    annotationProcessor files("C:\\Users\\nitra\\Dropbox\\Streamline\\Project\\StreamlineAPI\\build\\libs\\StreamlineAPI-Bungee-2.0.0.0.jar")
+    compileOnly files("${fileLocation}")
+    annotationProcessor files("${fileLocation}")
 }
 
 java {

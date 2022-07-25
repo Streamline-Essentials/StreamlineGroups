@@ -3,7 +3,7 @@ package tv.quaint.configs;
 import net.streamline.api.configs.DatabaseConfig;
 import net.streamline.api.configs.ModularizedConfig;
 import net.streamline.api.configs.StorageUtils;
-import net.streamline.api.modules.BundledModule;
+import tv.quaint.StreamlineGroups;
 import tv.quaint.configs.roles.ConfiguredDefaultRole;
 import tv.quaint.savable.SavableGroup;
 
@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultRoles extends ModularizedConfig {
-    public DefaultRoles(BundledModule module) {
-        super(module, "default-roles.yml", true);
+    public DefaultRoles() {
+        super(StreamlineGroups.getInstance(), "default-roles.yml", true);
     }
 
     public List<ConfiguredDefaultRole> getDefaultRolesOf(Class<? extends SavableGroup> clazz) {

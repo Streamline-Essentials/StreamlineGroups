@@ -1,7 +1,6 @@
 package tv.quaint.savable;
 
 import lombok.Getter;
-import net.streamline.api.modules.BundledModule;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.savables.users.SavableUser;
 import net.streamline.api.scheduler.ModuleRunnable;

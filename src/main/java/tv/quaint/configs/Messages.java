@@ -5,13 +5,12 @@ import net.streamline.api.configs.DatabaseConfig;
 import net.streamline.api.configs.FlatFileResource;
 import net.streamline.api.configs.ModularizedConfig;
 import net.streamline.api.configs.StorageUtils;
-import net.streamline.api.modules.BundledModule;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.flags.GroupFlag;
 
 public class Messages extends ModularizedConfig {
-    public Messages(BundledModule module) {
-        super(module, "messages.yml", true);
+    public Messages() {
+        super(StreamlineGroups.getInstance(), "messages.yml", true);
     }
 
     public String errorsBaseAlreadyExists() {

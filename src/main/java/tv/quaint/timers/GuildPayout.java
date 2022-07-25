@@ -1,6 +1,5 @@
 package tv.quaint.timers;
 
-import net.streamline.api.modules.BundledModule;
 import net.streamline.api.scheduler.ModuleRunnable;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.GroupManager;

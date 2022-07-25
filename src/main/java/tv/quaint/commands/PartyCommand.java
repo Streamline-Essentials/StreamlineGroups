@@ -1,8 +1,8 @@
 package tv.quaint.commands;
 
 import net.streamline.api.command.ModuleCommand;
-import net.streamline.api.modules.BundledModule;
 import net.streamline.api.modules.ModuleUtils;
+import net.streamline.api.modules.StreamlineModule;
 import net.streamline.api.savables.users.SavableUser;
 import net.streamline.base.configs.MainMessagesHandler;
 import net.streamline.utils.UUIDUtils;
@@ -19,7 +19,7 @@ import java.util.Locale;
 public class PartyCommand extends ModuleCommand {
     private final String useOther;
 
-    public PartyCommand(BundledModule module) {
+    public PartyCommand(StreamlineModule module) {
         super(module,
                 "party",
                 "streamline.command.party.default",

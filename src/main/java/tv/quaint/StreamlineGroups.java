@@ -2,8 +2,10 @@ package tv.quaint;
 
 import lombok.Getter;
 import net.streamline.api.command.ModuleCommand;
+import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.modules.SimpleModule;
 import net.streamline.api.modules.dependencies.Dependency;
+import net.streamline.api.placeholder.RATExpansion;
 import tv.quaint.commands.GuildCommand;
 import tv.quaint.commands.PartyCommand;
 import tv.quaint.configs.Configs;
@@ -48,6 +50,9 @@ public class StreamlineGroups extends SimpleModule {
     @Getter
     static MainListener mainListener;
 
+    @Getter
+    static GroupsExpansion groupsExpansion;
+
     @Override
     public String identifier() {
         return "streamline-groups";
@@ -64,11 +69,11 @@ public class StreamlineGroups extends SimpleModule {
     }
 
     @Override
-    public List<ModuleCommand> commands() {
-        return List.of(
+    public void registerCommands() {
+        setCommands(List.of(
                 new GuildCommand(this),
                 new PartyCommand(this)
-        );
+        ));
     }
 
     @Override
@@ -78,9 +83,9 @@ public class StreamlineGroups extends SimpleModule {
 
     @Override
     public void onEnable() {
-        configs = new Configs(this);
-        messages = new Messages(this);
-        defaultRoles = new DefaultRoles(this);
+        configs = new Configs();
+        messages = new Messages();
+        defaultRoles = new DefaultRoles();
 
         groupSaver = new GroupSaver();
         userSaver = new UserSaver();
@@ -102,12 +107,18 @@ public class StreamlineGroups extends SimpleModule {
         usersFolder.mkdirs();
         groupsFolder.mkdirs();
 
-        mainListener = new MainListener(this);
-        new GroupsExpansion();
+        mainListener = new MainListener();
+        ModuleUtils.listen(mainListener, this);
+
+        RATExpansion expansion = ModuleUtils.getRATAPI().getExpansionByIdentifier("groups");
+        while (expansion != null) {
+            ModuleUtils.getRATAPI().unregisterExpansion(expansion);
+            expansion = ModuleUtils.getRATAPI().getExpansionByIdentifier("groups");
+        }
+        groupsExpansion = new GroupsExpansion();
     }
 
     @Override
     public void onDisable() {
-        mainListener.disable();
     }
 }
