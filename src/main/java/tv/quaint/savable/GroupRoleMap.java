@@ -1,7 +1,7 @@
 package tv.quaint.savable;
 
 import net.streamline.api.modules.ModuleUtils;
-import net.streamline.api.savables.users.SavableUser;
+import net.streamline.api.savables.users.StreamlineUser;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.flags.GroupFlag;
 
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class GroupRoleMap {
     public SavableGroup group;
-    public ConcurrentHashMap<SavableGroupRole, List<SavableUser>> roles = new ConcurrentHashMap<>();
+    public ConcurrentHashMap<SavableGroupRole, List<StreamlineUser>> roles = new ConcurrentHashMap<>();
 
     public GroupRoleMap(SavableGroup group) {
         this.group = group;
@@ -46,7 +46,7 @@ public class GroupRoleMap {
             List<String> memberUUIDs = this.group.storageResource.getOrSetDefault("roles." + a + ".members", new ArrayList<>());
 
             SavableGroupRole role = new SavableGroupRole(a, priority, name, max, flags);
-            List<SavableUser> users = new ArrayList<>();
+            List<StreamlineUser> users = new ArrayList<>();
             memberUUIDs.forEach(act -> {
                 users.add(ModuleUtils.getOrGetUser(act));
             });
@@ -77,20 +77,20 @@ public class GroupRoleMap {
         }
 
         getRoles().forEach(a -> {
-            this.group.storageResource.write("roles." + a.getIdentifier() + ".priority", a.getPriority());
-            this.group.storageResource.write("roles." + a.getIdentifier() + ".max", a.getMax());
-            this.group.storageResource.write("roles." + a.getIdentifier() + ".name", a.getName());
-            this.group.storageResource.write("roles." + a.getIdentifier() + ".flags", a.getFlags());
+            this.group.set("roles." + a.getIdentifier() + ".priority", a.getPriority());
+            this.group.set("roles." + a.getIdentifier() + ".max", a.getMax());
+            this.group.set("roles." + a.getIdentifier() + ".name", a.getName());
+            this.group.set("roles." + a.getIdentifier() + ".flags", a.getFlags());
 
             List<String> memberUUIDs = new ArrayList<>();
             getUsersOf(a).forEach(act -> {
-                memberUUIDs.add(act.uuid);
+                memberUUIDs.add(act.getUUID());
             });
-            this.group.storageResource.write("roles." + a.getIdentifier() + ".members", memberUUIDs);
+            this.group.set("roles." + a.getIdentifier() + ".members", memberUUIDs);
         });
     }
 
-    public void addSavableGroup(SavableGroupRole role, List<SavableUser> users) {
+    public void addSavableGroup(SavableGroupRole role, List<StreamlineUser> users) {
         roles.put(role, users);
     }
 
@@ -98,15 +98,15 @@ public class GroupRoleMap {
         addSavableGroup(role, new ArrayList<>());
     }
 
-    public List<SavableUser> getUsersOf(SavableGroupRole role) {
-        List<SavableUser> users = roles.get(role);
+    public List<StreamlineUser> getUsersOf(SavableGroupRole role) {
+        List<StreamlineUser> users = roles.get(role);
         if (users == null) return new ArrayList<>();
         return users;
     }
 
-    public void applyUser(SavableGroupRole role, SavableUser user) {
+    public void applyUser(SavableGroupRole role, StreamlineUser user) {
         removeUserAll(user);
-        List<SavableUser> users = getUsersOf(role);
+        List<StreamlineUser> users = getUsersOf(role);
         users.add(user);
     }
 
@@ -118,8 +118,8 @@ public class GroupRoleMap {
         return r;
     }
 
-    public List<SavableUser> getAllUsers() {
-        List<SavableUser> r = new ArrayList<>();
+    public List<StreamlineUser> getAllUsers() {
+        List<StreamlineUser> r = new ArrayList<>();
 
         getRoles().forEach(a -> {
             getUsersOf(a).forEach(act -> {
@@ -131,19 +131,19 @@ public class GroupRoleMap {
         return r;
     }
 
-    public boolean hasUser(SavableUser user) {
+    public boolean hasUser(StreamlineUser user) {
         for (SavableGroupRole role : getRoles()) {
             if (roleHasUser(role, user)) return true;
         }
         return false;
     }
 
-    public boolean roleHasUser(SavableGroupRole role, SavableUser user) {
+    public boolean roleHasUser(SavableGroupRole role, StreamlineUser user) {
         return getUsersOf(role).contains(user);
     }
 
-    public void removeUserAll(SavableUser user) {
-        roles.forEach((role, savableUsers) -> savableUsers.remove(user));
+    public void removeUserAll(StreamlineUser user) {
+        roles.forEach((role, StreamlineUsers) -> StreamlineUsers.remove(user));
     }
 
     public List<SavableGroupRole> getRoles() {
@@ -171,32 +171,32 @@ public class GroupRoleMap {
         return null;
     }
 
-    public SavableGroupRole getRoleOf(SavableUser user) {
+    public SavableGroupRole getRoleOf(StreamlineUser user) {
         for (SavableGroupRole role : getRoles()) {
             if (roleHasUser(role, user)) return role;
         }
         return null;
     }
 
-    public SavableGroupRole getNextRoleOf(SavableUser user) {
+    public SavableGroupRole getNextRoleOf(StreamlineUser user) {
         SavableGroupRole current = getRoleOf(user);
         if (current.equals(getRolesOrdered().lastEntry().getValue())) return null;
 
         return getRolesOrdered().higherEntry(getPriorityOfRole(current)).getValue();
     }
 
-    public SavableGroupRole getPreviousRoleOf(SavableUser user) {
+    public SavableGroupRole getPreviousRoleOf(StreamlineUser user) {
         SavableGroupRole current = getRoleOf(user);
         if (current.equals(getRolesOrdered().firstEntry().getValue())) return null;
 
         return getRolesOrdered().lowerEntry(getPriorityOfRole(current)).getValue();
     }
 
-    public void addUser(SavableUser user) {
+    public void addUser(StreamlineUser user) {
         promote(user);
     }
 
-    public void promote(SavableUser user) {
+    public void promote(StreamlineUser user) {
         if (getRoleOf(user) == null) {
             applyUser(getRolesOrdered().firstEntry().getValue(), user);
             return;
@@ -211,7 +211,7 @@ public class GroupRoleMap {
         applyUser(newRole, user);
     }
 
-    public void demote(SavableUser user) {
+    public void demote(StreamlineUser user) {
         if (getRoleOf(user) == null) applyUser(getRolesOrdered().firstEntry().getValue(), user);
 
 //        SavableGroupRole oldRole = getRoleOf(user);
@@ -221,7 +221,7 @@ public class GroupRoleMap {
         applyUser(newRole, user);
     }
 
-    public boolean userHas(SavableUser user, GroupFlag flag) {
+    public boolean userHas(StreamlineUser user, GroupFlag flag) {
         return getRoleOf(user).hasFlag(flag);
     }
 

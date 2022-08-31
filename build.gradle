@@ -5,13 +5,13 @@ plugins {
 }
 
 group 'tv.quaint'
-version '1.0-SNAPSHOT'
+version '1.2-SNAPSHOT'
 
 project.ext {
-    def dir = layout.buildDirectory.dir('C:\\Users\\nitra\\Dropbox\\Streamline\\Project\\StreamlineAPI\\build\\libs')
-    File[] files = dir.get().getAsFile().listFiles();
+    def dir = layout.buildDirectory.dir('C:\\Users\\nitra\\Dropbox\\Streamline\\Project\\Streamline\\api\\build\\libs')
+    File[] files = dir.get().getAsFile().listFiles()
     File dependFile = files[0]
-    fileLocation = dependFile.toPath().toString();
+    fileLocation = dependFile.toPath().toString()
 }
 
 repositories {

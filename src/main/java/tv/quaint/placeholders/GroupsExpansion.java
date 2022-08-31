@@ -2,7 +2,7 @@ package tv.quaint.placeholders;
 
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.placeholder.RATExpansion;
-import net.streamline.api.savables.users.SavableUser;
+import net.streamline.api.savables.users.StreamlineUser;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.GroupManager;
 import tv.quaint.savable.SavableGroupRole;
@@ -38,9 +38,9 @@ public class GroupsExpansion extends RATExpansion {
     }
 
     @Override
-    public String onRequest(SavableUser savableUser, String params) {
+    public String onRequest(StreamlineUser StreamlineUser, String params) {
         if (params.startsWith("guild_")) {
-            SavableGuild guild = GroupManager.getGroupOfUser(SavableGuild.class, savableUser);
+            SavableGuild guild = GroupManager.getGroupOfUser(SavableGuild.class, StreamlineUser);
             if (guild == null) {
                 return null;
             }
@@ -54,7 +54,7 @@ public class GroupsExpansion extends RATExpansion {
                 return String.valueOf(guild.currentXP);
             }
             if (params.startsWith("guild_role_")) {
-                SavableGroupRole role = guild.getRole(savableUser);
+                SavableGroupRole role = guild.getRole(StreamlineUser);
                 if (role == null) return null;
                 if (params.equals("guild_role_identifier")) {
                     return String.valueOf(role.getIdentifier());
@@ -86,12 +86,12 @@ public class GroupsExpansion extends RATExpansion {
             }
         }
         if (params.startsWith("party_")) {
-            SavableParty party = GroupManager.getGroupOfUser(SavableParty.class, savableUser);
+            SavableParty party = GroupManager.getGroupOfUser(SavableParty.class, StreamlineUser);
             if (party == null) {
                 return null;
             }
             if (params.startsWith("party_role_")) {
-                SavableGroupRole role = party.getRole(savableUser);
+                SavableGroupRole role = party.getRole(StreamlineUser);
                 if (role == null) return null;
                 if (params.equals("party_role_identifier")) {
                     return String.valueOf(role.getIdentifier());

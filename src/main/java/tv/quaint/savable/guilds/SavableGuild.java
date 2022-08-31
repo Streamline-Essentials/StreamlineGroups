@@ -1,19 +1,19 @@
 package tv.quaint.savable.guilds;
 
+import net.streamline.api.configs.StorageResource;
 import net.streamline.api.modules.ModuleUtils;
-import net.streamline.api.savables.users.SavableUser;
-import net.streamline.base.Streamline;
-import net.streamline.utils.MathUtils;
+import net.streamline.api.savables.users.StreamlineUser;
+import net.streamline.api.utils.MathUtils;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.SavableGroup;
 
 public class SavableGuild extends SavableGroup {
     public String name;
-    public float totalXP;
-    public float currentXP;
+    public double totalXP;
+    public double currentXP;
     public int level;
 
-    public SavableGuild(SavableUser leader) {
+    public SavableGuild(StreamlineUser leader) {
         super(leader, SavableGuild.class);
     }
 
@@ -61,31 +61,31 @@ public class SavableGuild extends SavableGroup {
         setLevel(this.level - amount);
     }
 
-    public float getNeededXp(){
-        float needed = 0;
+    public double getNeededXp(){
+        double needed = 0;
 
         String function = ModuleUtils.replaceAllPlayerBungee(this.getMember(this.uuid), StreamlineGroups.getConfigs().guildLevelingEquation())
                 .replace("%default_level%", String.valueOf(StreamlineGroups.getConfigs().guildStartingLevel()));
 
-        needed = (float) MathUtils.eval(function);
+        needed = (double) MathUtils.eval(function);
 
         return needed;
     }
 
-    public float xpUntilNextLevel(){
+    public double xpUntilNextLevel(){
         return getNeededXp() - this.totalXP;
     }
 
-    public void addTotalXP(float amount){
+    public void addTotalXP(double amount){
         setTotalXP(this.totalXP + amount);
     }
 
-    public void removeTotalXP(float amount){
+    public void removeTotalXP(double amount){
         setTotalXP(this.totalXP - amount);
     }
 
-    public void setTotalXP(float amount){
-        float old = this.totalXP;
+    public void setTotalXP(double amount){
+        double old = this.totalXP;
 
         this.totalXP = amount;
 
@@ -98,18 +98,18 @@ public class SavableGuild extends SavableGroup {
         ModuleUtils.fireEvent(new XPChangeGuildEvent(this, old));
     }
 
-    public float getCurrentLevelXP(){
-        float needed = 0;
+    public double getCurrentLevelXP(){
+        double needed = 0;
 
         String function = ModuleUtils.replaceAllPlayerBungee(this.getMember(this.uuid), StreamlineGroups.getConfigs().guildLevelingEquation().replace("%groups_guild_level%", String.valueOf(this.level - 1)))
                 .replace("%default_level%", String.valueOf(StreamlineGroups.getConfigs().guildStartingLevel()));
 
-        needed = (float) MathUtils.eval(function);
+        needed = (double) MathUtils.eval(function);
 
         return needed;
     }
 
-    public float getCurrentXP(){
+    public double getCurrentXP(){
         //        loadValues();
         return this.totalXP - getCurrentLevelXP();
     }

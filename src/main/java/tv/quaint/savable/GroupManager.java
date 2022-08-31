@@ -7,7 +7,7 @@ import lombok.Getter;
 import net.streamline.api.configs.*;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.savables.SavableResource;
-import net.streamline.api.savables.users.SavableUser;
+import net.streamline.api.savables.users.StreamlineUser;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.flags.GroupFlag;
 import tv.quaint.savable.guilds.CreateGuildEvent;
@@ -93,7 +93,7 @@ public class GroupManager {
         getGroupsOf(group.getClass()).remove(group);
     }
 
-    public static <T extends SavableGroup> T getGroupOfUser(Class<T> clazz, SavableUser user) {
+    public static <T extends SavableGroup> T getGroupOfUser(Class<T> clazz, StreamlineUser user) {
         for (SavableGroup group : getGroupsOf(clazz)) {
             if (group.hasMember(user)) return (T) group;
         }
@@ -116,7 +116,7 @@ public class GroupManager {
         removeGroupOf(group);
     }
 
-    public static boolean hasGroup(SavableUser user, Class<? extends SavableGroup> clazz) {
+    public static boolean hasGroup(StreamlineUser user, Class<? extends SavableGroup> clazz) {
         return getGroupOfUser(clazz, user) != null;
     }
 
@@ -132,7 +132,7 @@ public class GroupManager {
         return folder;
     }
 
-    public static StorageResource<?> newStorageResource(String uuid, Class<? extends SavableResource> clazz) {
+    public static StorageResource<?> newStorageResource(String uuid, Class<? extends SavableGroup> clazz) {
         switch (StreamlineGroups.getConfigs().savingUse()) {
             case YAML -> {
                 return new FlatFileResource<>(Config.class, uuid + ".yml", groupFolder(clazz), false);
@@ -166,10 +166,10 @@ public class GroupManager {
                 return new FlatFileResource<>(Toml.class, uuid + ".toml", StreamlineGroups.getUsersFolder(), false);
             }
             case MONGO -> {
-                return new MongoResource(StreamlineGroups.getConfigs().getConfiguredDatabase(), clazz.getSimpleName(), "uuid", uuid);
+                return new MongoResource(StreamlineGroups.getConfigs().getConfiguredDatabaseUsers(), clazz.getSimpleName(), "uuid", uuid);
             }
             case MYSQL -> {
-                return new MySQLResource(StreamlineGroups.getConfigs().getConfiguredDatabase(), new SQLCollection(clazz.getSimpleName(), "uuid", uuid));
+                return new MySQLResource(StreamlineGroups.getConfigs().getConfiguredDatabaseUsers(), new SQLCollection(clazz.getSimpleName(), "uuid", uuid));
             }
         }
 
@@ -204,13 +204,13 @@ public class GroupManager {
         }
     }
 
-    public static SavableGuild createGuild(SavableUser sender, SavableUser leader, String name) {
+    public static SavableGuild createGuild(StreamlineUser sender, StreamlineUser leader, String name) {
         if (hasGroup(leader, SavableGuild.class)) {
             ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseAlreadyExists());
             return getGroupOfUser(SavableGuild.class, leader);
         }
 
-        SavableGuild guild = new SavableGuild(leader.uuid);
+        SavableGuild guild = new SavableGuild(leader.getUUID());
         guild.name = name;
         guild.saveAll();
 
@@ -222,13 +222,13 @@ public class GroupManager {
         return guild;
     }
 
-    public static SavableParty createParty(SavableUser sender, SavableUser leader) {
+    public static SavableParty createParty(StreamlineUser sender, StreamlineUser leader) {
         if (hasGroup(leader, SavableParty.class)) {
             ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseAlreadyExists());
             return getGroupOfUser(SavableParty.class, leader);
         }
 
-        SavableParty party = new SavableParty(leader.uuid);
+        SavableParty party = new SavableParty(leader.getUUID());
         party.saveAll();
 
         ModuleUtils.sendMessage(leader, StreamlineGroups.getMessages().partiesCreate());
@@ -239,8 +239,8 @@ public class GroupManager {
         return party;
     }
 
-    public static void invitePlayerGuild(SavableUser sender, SavableUser other, SavableUser toInvite) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void invitePlayerGuild(StreamlineUser sender, StreamlineUser other, StreamlineUser toInvite) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -248,7 +248,7 @@ public class GroupManager {
             return;
         }
 
-        GroupedUser user = getOrGetGroupedUser(toInvite.uuid);
+        GroupedUser user = getOrGetGroupedUser(toInvite.getUUID());
         if (user.getGroup(SavableGuild.class) != null) {
             ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseAlreadyInOther());
             return;
@@ -276,8 +276,8 @@ public class GroupManager {
         });
     }
 
-    public static void invitePlayerParty(SavableUser sender, SavableUser other, SavableUser toInvite) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void invitePlayerParty(StreamlineUser sender, StreamlineUser other, StreamlineUser toInvite) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -285,7 +285,7 @@ public class GroupManager {
             return;
         }
 
-        GroupedUser user = getOrGetGroupedUser(toInvite.uuid);
+        GroupedUser user = getOrGetGroupedUser(toInvite.getUUID());
         if (user.getGroup(SavableParty.class) != null) {
             ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseAlreadyInOther());
             return;
@@ -313,8 +313,8 @@ public class GroupManager {
         });
     }
 
-    public static void acceptInviteGuild(SavableUser sender, SavableUser other, SavableUser invited) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void acceptInviteGuild(StreamlineUser sender, StreamlineUser other, StreamlineUser invited) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -322,7 +322,7 @@ public class GroupManager {
             return;
         }
 
-        GroupedUser groupedInvited = getOrGetGroupedUser(invited.uuid);
+        GroupedUser groupedInvited = getOrGetGroupedUser(invited.getUUID());
         SavableGuild already = groupedInvited.getGroup(SavableGuild.class);
 
         if (already != null) {
@@ -358,8 +358,8 @@ public class GroupManager {
         });
     }
 
-    public static void acceptInviteParty(SavableUser sender, SavableUser other, SavableUser invited) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void acceptInviteParty(StreamlineUser sender, StreamlineUser other, StreamlineUser invited) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -367,7 +367,7 @@ public class GroupManager {
             return;
         }
 
-        GroupedUser groupedInvited = getOrGetGroupedUser(invited.uuid);
+        GroupedUser groupedInvited = getOrGetGroupedUser(invited.getUUID());
         SavableParty already = groupedInvited.getGroup(SavableParty.class);
 
         if (already != null) {
@@ -403,8 +403,8 @@ public class GroupManager {
         });
     }
 
-    public static void denyInviteGuild(SavableUser sender, SavableUser other, SavableUser invited) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void denyInviteGuild(StreamlineUser sender, StreamlineUser other, StreamlineUser invited) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -439,8 +439,8 @@ public class GroupManager {
         });
     }
 
-    public static void denyInviteParty(SavableUser sender, SavableUser other, SavableUser invited) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void denyInviteParty(StreamlineUser sender, StreamlineUser other, StreamlineUser invited) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -475,8 +475,8 @@ public class GroupManager {
         });
     }
 
-    public static void listGuild(SavableUser sender, SavableUser other) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void listGuild(StreamlineUser sender, StreamlineUser other) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -504,8 +504,8 @@ public class GroupManager {
         );
     }
 
-    public static void listParty(SavableUser sender, SavableUser other) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void listParty(StreamlineUser sender, StreamlineUser other) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -533,8 +533,8 @@ public class GroupManager {
         );
     }
 
-    public static void disbandGuild(SavableUser sender, SavableUser other) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void disbandGuild(StreamlineUser sender, StreamlineUser other) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -542,7 +542,7 @@ public class GroupManager {
             return;
         }
 
-        for (SavableUser user : guild.getAllUsers()) {
+        for (StreamlineUser user : guild.getAllUsers()) {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsDisbandSender()
                         .replace("%this_sender%", sender.getName())
@@ -566,8 +566,8 @@ public class GroupManager {
         guild.disband();
     }
 
-    public static void disbandParty(SavableUser sender, SavableUser other) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void disbandParty(StreamlineUser sender, StreamlineUser other) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -575,7 +575,7 @@ public class GroupManager {
             return;
         }
 
-        for (SavableUser user : party.getAllUsers()) {
+        for (StreamlineUser user : party.getAllUsers()) {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesDisbandSender()
                         .replace("%this_sender%", sender.getName())
@@ -599,8 +599,8 @@ public class GroupManager {
         party.disband();
     }
 
-    public static void promoteGuild(SavableUser sender, SavableUser other, SavableUser promote) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void promoteGuild(StreamlineUser sender, StreamlineUser other, StreamlineUser promote) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -634,7 +634,7 @@ public class GroupManager {
             }
         }
 
-        for (SavableUser user : guild.getAllUsers()) {
+        for (StreamlineUser user : guild.getAllUsers()) {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteSender()
                         .replace("%this_sender%", sender.getName())
@@ -661,8 +661,8 @@ public class GroupManager {
         guild.promoteUser(promote);
     }
 
-    public static void promoteParty(SavableUser sender, SavableUser other, SavableUser promote) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void promoteParty(StreamlineUser sender, StreamlineUser other, StreamlineUser promote) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -696,7 +696,7 @@ public class GroupManager {
             }
         }
 
-        for (SavableUser user : party.getAllUsers()) {
+        for (StreamlineUser user : party.getAllUsers()) {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteSender()
                         .replace("%this_sender%", sender.getName())
@@ -723,8 +723,8 @@ public class GroupManager {
         party.promoteUser(promote);
     }
 
-    public static void demoteGuild(SavableUser sender, SavableUser other, SavableUser promote) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void demoteGuild(StreamlineUser sender, StreamlineUser other, StreamlineUser promote) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -758,7 +758,7 @@ public class GroupManager {
             }
         }
 
-        for (SavableUser user : guild.getAllUsers()) {
+        for (StreamlineUser user : guild.getAllUsers()) {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsDemoteSender()
                         .replace("%this_sender%", sender.getName())
@@ -785,8 +785,8 @@ public class GroupManager {
         guild.demoteUser(promote);
     }
 
-    public static void demoteParty(SavableUser sender, SavableUser other, SavableUser promote) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void demoteParty(StreamlineUser sender, StreamlineUser other, StreamlineUser promote) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -820,7 +820,7 @@ public class GroupManager {
             }
         }
 
-        for (SavableUser user : party.getAllUsers()) {
+        for (StreamlineUser user : party.getAllUsers()) {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesDemoteSender()
                         .replace("%this_sender%", sender.getName())
@@ -847,8 +847,8 @@ public class GroupManager {
         party.demoteUser(promote);
     }
 
-    public static void leaveGuild(SavableUser sender, SavableUser other) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void leaveGuild(StreamlineUser sender, StreamlineUser other) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -861,7 +861,7 @@ public class GroupManager {
             return;
         }
 
-        for (SavableUser user : guild.getAllUsers()) {
+        for (StreamlineUser user : guild.getAllUsers()) {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsLeaveSender()
                         .replace("%this_sender%", sender.getName())
@@ -888,8 +888,8 @@ public class GroupManager {
         guild.removeMember(other);
     }
 
-    public static void leaveParty(SavableUser sender, SavableUser other) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void leaveParty(StreamlineUser sender, StreamlineUser other) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -902,7 +902,7 @@ public class GroupManager {
             return;
         }
 
-        for (SavableUser user : party.getAllUsers()) {
+        for (StreamlineUser user : party.getAllUsers()) {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesLeaveSender()
                         .replace("%this_sender%", sender.getName())
@@ -929,8 +929,8 @@ public class GroupManager {
         party.removeMember(other);
     }
 
-    public static void chatGuild(SavableUser sender, SavableUser other, String message) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void chatGuild(StreamlineUser sender, StreamlineUser other, String message) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -938,7 +938,7 @@ public class GroupManager {
             return;
         }
 
-        for (SavableUser user : guild.getAllUsers()) {
+        for (StreamlineUser user : guild.getAllUsers()) {
             ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsChat()
                     .replace("%this_sender%", sender.getName())
                     .replace("%this_message%", message)
@@ -946,8 +946,8 @@ public class GroupManager {
         }
     }
 
-    public static void chatParty(SavableUser sender, SavableUser other, String message) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void chatParty(StreamlineUser sender, StreamlineUser other, String message) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -955,7 +955,7 @@ public class GroupManager {
             return;
         }
 
-        for (SavableUser user : party.getAllUsers()) {
+        for (StreamlineUser user : party.getAllUsers()) {
             ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesChat()
                     .replace("%this_sender%", sender.getName())
                     .replace("%this_message%", message)
@@ -963,8 +963,8 @@ public class GroupManager {
         }
     }
 
-    public static void renameGuild(SavableUser sender, SavableUser other, String name) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.uuid);
+    public static void renameGuild(StreamlineUser sender, StreamlineUser other, String name) {
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -974,7 +974,7 @@ public class GroupManager {
 
         String oldName = guild.name;
 
-        for (SavableUser user : guild.getAllUsers()) {
+        for (StreamlineUser user : guild.getAllUsers()) {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsRenameSender()
                         .replace("%this_sender%", sender.getName())

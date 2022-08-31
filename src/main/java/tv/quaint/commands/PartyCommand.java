@@ -1,11 +1,11 @@
 package tv.quaint.commands;
 
 import net.streamline.api.command.ModuleCommand;
+import net.streamline.api.configs.given.MainMessagesHandler;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.modules.StreamlineModule;
-import net.streamline.api.savables.users.SavableUser;
-import net.streamline.base.configs.MainMessagesHandler;
-import net.streamline.utils.UUIDUtils;
+import net.streamline.api.savables.users.StreamlineUser;
+import net.streamline.api.utils.UUIDUtils;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.GroupManager;
 import tv.quaint.savable.GroupedUser;
@@ -23,237 +23,342 @@ public class PartyCommand extends ModuleCommand {
         super(module,
                 "party",
                 "streamline.command.party.default",
-                "p"
+                "g"
         );
 
         this.useOther = this.getCommandResource().getOrSetDefault("permissions.use.other", "streamline.command.party.others");
     }
 
     @Override
-    public void run(SavableUser savableUser, String[] strings) {
+    public void run(StreamlineUser sender, String[] strings) {
         if (strings.length < 1) {
-            ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
+            ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
             return;
         }
 
-        String username = strings[0];
-
-        if (username.equals("create") && ! ModuleUtils.getOnlinePlayerNames().contains("create")) {
-            GroupManager.createParty(savableUser, savableUser);
-            return;
-        }
-        if (username.equals("list") && ! ModuleUtils.getOnlinePlayerNames().contains("list")) {
-            GroupManager.listParty(savableUser, savableUser);
-            return;
-        }
-        if (username.equals("disband") && ! ModuleUtils.getOnlinePlayerNames().contains("disband")) {
-            GroupManager.disbandParty(savableUser, savableUser);
-            return;
-        }
-        if (username.equals("leave") && ! ModuleUtils.getOnlinePlayerNames().contains("leave")) {
-            GroupManager.leaveParty(savableUser, savableUser);
-            return;
-        }
-        if (username.equals("chat") && ! ModuleUtils.getOnlinePlayerNames().contains("chat")) {
-            GroupManager.chatParty(savableUser, savableUser, ModuleUtils.argsToStringMinus(strings, 0));
-            return;
-        }
-
-        if (strings.length < 2) {
-            ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
-            return;
-        }
-
-        if (username.equals("promote") && ! ModuleUtils.getOnlinePlayerNames().contains("promote")) {
-            SavableUser other = ModuleUtils.getOrGetUser(UUIDUtils.swapToUUID(strings[1]));
-
-            if (other == null) {
-                ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
-                return;
-            }
-            GroupManager.promoteParty(savableUser, savableUser, other);
-            return;
-        }
-        if (username.equals("demote") && ! ModuleUtils.getOnlinePlayerNames().contains("demote")) {
-            SavableUser other = ModuleUtils.getOrGetUser(UUIDUtils.swapToUUID(strings[1]));
-
-            if (other == null) {
-                ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
-                return;
-            }
-            GroupManager.demoteParty(savableUser, savableUser, other);
-            return;
-        }
-
-        String action = strings[1].toLowerCase(Locale.ROOT);
-
-        SavableUser other = ModuleUtils.getOrGetUser(UUIDUtils.swapToUUID(username));
-
-        if (other == null) {
-            ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
-            return;
-        }
+        String action = strings[0].toLowerCase(Locale.ROOT);
 
         switch (action) {
             case "create" -> {
-                if (! ModuleUtils.hasPermission(savableUser, this.useOther)) {
-                    ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                if (strings.length == 1) {
+                    GroupManager.createParty(sender, sender);
                     return;
                 }
 
-                GroupManager.createParty(savableUser, other);
+                StreamlineUser other = ModuleUtils.getOrGetUser(UUIDUtils.swapToUUID(strings[0]));
+
+                if (other == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, this.useOther)) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                    return;
+                }
+
+                if (strings.length > 2) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_MANY.get());
+                    return;
+                }
+
+                GroupManager.createParty(sender, other);
             }
             case "list" -> {
-                if (! ModuleUtils.hasPermission(savableUser, this.useOther)) {
-                    ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                if (strings.length < 2) {
+                    GroupManager.listParty(sender, sender);
                     return;
                 }
 
-                GroupManager.listParty(savableUser, other);
+                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+
+                if (other == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, this.useOther)) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                    return;
+                }
+
+                GroupManager.listParty(sender, other);
             }
             case "invite" -> {
-                GroupManager.invitePlayerParty(savableUser, savableUser, other);
+                if (strings.length < 2) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
+                    return;
+                }
+
+                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+
+                if (other == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (strings.length == 2) {
+                    GroupManager.invitePlayerParty(sender, sender, other);
+                    return;
+                }
+
+                StreamlineUser otherOther = ModuleUtils.getOrGetUserByName(strings[2]);
+
+                if (otherOther == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, this.useOther)) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                    return;
+                }
+
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                SavableParty party = user.getGroup(SavableParty.class);
+                if (party == null) {
+                    ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
+                    return;
+                }
+
+                GroupManager.invitePlayerParty(sender, other, otherOther);
             }
             case "accept" -> {
-                GroupedUser user = GroupManager.getOrGetGroupedUser(other.uuid);
-                SavableParty party = user.getGroup(SavableParty.class);
-                if (party == null) {
-                    ModuleUtils.sendMessage(savableUser, StreamlineGroups.getMessages().errorsBaseNotInOther());
+                if (strings.length < 2) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
                 }
 
-                GroupManager.acceptInviteParty(savableUser, other, savableUser);
+                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+
+                if (other == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (strings.length == 2) {
+                    GroupManager.acceptInviteParty(sender, other, sender);
+                    return;
+                }
+
+                StreamlineUser otherOther = ModuleUtils.getOrGetUserByName(strings[2]);
+
+                if (otherOther == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, this.useOther)) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                    return;
+                }
+
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                SavableParty party = user.getGroup(SavableParty.class);
+                if (party == null) {
+                    ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
+                    return;
+                }
+
+                GroupManager.acceptInviteParty(sender, other, otherOther);
             }
             case "deny" -> {
-                GroupedUser user = GroupManager.getOrGetGroupedUser(other.uuid);
-                SavableParty party = user.getGroup(SavableParty.class);
-                if (party == null) {
-                    ModuleUtils.sendMessage(savableUser, StreamlineGroups.getMessages().errorsBaseNotInOther());
+                if (strings.length < 2) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
                 }
 
-                GroupManager.denyInviteParty(savableUser, other, savableUser);
+                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+
+                if (other == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (strings.length == 2) {
+                    GroupManager.denyInviteParty(sender, other, sender);
+                    return;
+                }
+
+                StreamlineUser otherOther = ModuleUtils.getOrGetUserByName(strings[2]);
+
+                if (otherOther == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, this.useOther)) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                    return;
+                }
+
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                SavableParty party = user.getGroup(SavableParty.class);
+                if (party == null) {
+                    ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
+                    return;
+                }
+
+                GroupManager.denyInviteParty(sender, other, otherOther);
             }
             case "disband" -> {
-                if (! ModuleUtils.hasPermission(savableUser, this.useOther)) {
-                    ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                if (strings.length < 2) {
+                    GroupManager.disbandParty(sender, sender);
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(other.uuid);
+                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+
+                if (other == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, this.useOther)) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                    return;
+                }
+
+                GroupedUser user = GroupManager.getOrGetGroupedUser(other.getUUID());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) {
-                    ModuleUtils.sendMessage(savableUser, StreamlineGroups.getMessages().errorsBaseNotInOther());
+                    ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.disbandParty(savableUser, party.owner);
+                GroupManager.disbandParty(sender, party.owner);
             }
             case "promote" -> {
-                if (! ModuleUtils.hasPermission(savableUser, this.useOther)) {
-                    ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                if (strings.length < 2) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(other.uuid);
+                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+
+                if (other == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (strings.length == 2) {
+                    GroupManager.promoteParty(sender, sender, other);
+                    return;
+                }
+
+                StreamlineUser otherOther = ModuleUtils.getOrGetUserByName(strings[2]);
+
+                if (otherOther == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, this.useOther)) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                    return;
+                }
+
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) {
-                    ModuleUtils.sendMessage(savableUser, StreamlineGroups.getMessages().errorsBaseNotInOther());
+                    ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.promoteParty(savableUser, party.owner, other);
+                GroupManager.promoteParty(sender, other, otherOther);
             }
             case "demote" -> {
-                if (! ModuleUtils.hasPermission(savableUser, this.useOther)) {
-                    ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                if (strings.length < 2) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(other.uuid);
+                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+
+                if (other == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (strings.length == 2) {
+                    GroupManager.demoteParty(sender, sender, other);
+                    return;
+                }
+
+                StreamlineUser otherOther = ModuleUtils.getOrGetUserByName(strings[2]);
+
+                if (otherOther == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, this.useOther)) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                    return;
+                }
+
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) {
-                    ModuleUtils.sendMessage(savableUser, StreamlineGroups.getMessages().errorsBaseNotInOther());
+                    ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.demoteParty(savableUser, party.owner, other);
+                GroupManager.demoteParty(sender, other, otherOther);
             }
             case "leave" -> {
-                if (! ModuleUtils.hasPermission(savableUser, this.useOther)) {
-                    ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                if (strings.length < 2) {
+                    GroupManager.leaveParty(sender, sender);
                     return;
                 }
 
-                GroupManager.leaveParty(savableUser, other);
+                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+
+                if (other == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, this.useOther)) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                    return;
+                }
+
+                GroupManager.leaveParty(sender, other);
             }
             case "chat" -> {
-                if (! ModuleUtils.hasPermission(savableUser, this.useOther)) {
-                    ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                if (strings.length < 2) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
                 }
 
-                if (strings.length < 3) {
-                    ModuleUtils.sendMessage(savableUser, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
+                if (strings.length == 2) {
+                    GroupManager.chatParty(sender, sender, ModuleUtils.argsToStringMinus(strings, 0));
+                    return;
+                }
+
+                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+
+                if (other == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, this.useOther)) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
                     return;
                 }
 
                 String message = ModuleUtils.argsToStringMinus(strings, 0, 1);
 
-                GroupManager.chatParty(savableUser, other, message);
+                GroupManager.chatParty(sender, other, message);
             }
         }
     }
 
     @Override
-    public List<String> doTabComplete(SavableUser savableUser, String[] strings) {
+    public List<String> doTabComplete(StreamlineUser StreamlineUser, String[] strings) {
         if (strings.length <= 1) {
-            List<String> first = new ArrayList<>(ModuleUtils.getOnlinePlayerNames());
-            first.add("create");
-            first.add("disband");
-            first.add("list");
-            first.add("promote");
-            first.add("demote");
-            first.add("leave");
-            first.add("chat");
-            return first;
-        }
-        if (strings.length == 2) {
-            if (strings[0].equalsIgnoreCase("create")) {
-                return List.of("<name>");
-            }
-            if (strings[0].equalsIgnoreCase("promote")) {
-                GroupedUser user = GroupManager.getOrGetGroupedUser(savableUser.uuid);
-                SavableParty party = user.getGroup(SavableParty.class);
-                if (party == null) return ModuleUtils.getOnlinePlayerNames();
-                if (! party.userHasFlag(savableUser, GroupFlag.PROMOTE)) return new ArrayList<>();
-                List<SavableUser> users = party.getAllUsers();
-                party.groupRoleMap.rolesAbove(party.getRole(savableUser)).forEach(a -> {
-                    users.removeAll(party.groupRoleMap.getUsersOf(a));
-                });
-                users.removeAll(party.groupRoleMap.getUsersOf(party.getRole(savableUser)));
-                List<String> names = new ArrayList<>();
-                users.forEach(a -> {
-                    names.add(a.getName());
-                });
-                return names;
-            }
-            if (strings[0].equalsIgnoreCase("demote")) {
-                GroupedUser user = GroupManager.getOrGetGroupedUser(savableUser.uuid);
-                SavableParty party = user.getGroup(SavableParty.class);
-                if (party == null) return ModuleUtils.getOnlinePlayerNames();
-                if (! party.userHasFlag(savableUser, GroupFlag.PROMOTE)) return new ArrayList<>();
-                List<SavableUser> users = party.getAllUsers();
-                party.groupRoleMap.rolesAbove(party.getRole(savableUser)).forEach(a -> {
-                    users.removeAll(party.groupRoleMap.getUsersOf(a));
-                });
-                users.removeAll(party.groupRoleMap.getUsersOf(party.getRole(savableUser)));
-                List<String> names = new ArrayList<>();
-                users.forEach(a -> {
-                    names.add(a.getName());
-                });
-                return names;
-            }
             return List.of(
                     "create",
                     "list",
@@ -264,42 +369,57 @@ public class PartyCommand extends ModuleCommand {
                     "promote",
                     "demote",
                     "leave",
-                    "chat"
+                    "chat",
+                    "rename"
             );
         }
-
-        if (strings.length == 3) {
-            if (strings[1].equalsIgnoreCase("promote")) {
-                GroupedUser user = GroupManager.getOrGetGroupedUser(savableUser.uuid);
+        if (strings.length == 2) {
+            if (strings[0].equalsIgnoreCase("create") || strings[0].equalsIgnoreCase("list") || strings[0].equalsIgnoreCase("disband")) {
+                if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
+                    return ModuleUtils.getOnlinePlayerNames();
+                }
+            }
+            if (strings[0].equalsIgnoreCase("promote")) {
+                GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUUID());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) return ModuleUtils.getOnlinePlayerNames();
-                if (! party.userHasFlag(savableUser, GroupFlag.PROMOTE)) return new ArrayList<>();
-                List<SavableUser> users = party.getAllUsers();
-                party.groupRoleMap.rolesAbove(party.getRole(savableUser)).forEach(a -> {
+                if (! party.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ArrayList<>();
+                List<StreamlineUser> users = party.getAllUsers();
+                party.groupRoleMap.rolesAbove(party.getRole(StreamlineUser)).forEach(a -> {
                     users.removeAll(party.groupRoleMap.getUsersOf(a));
                 });
-                users.removeAll(party.groupRoleMap.getUsersOf(party.getRole(savableUser)));
+                users.removeAll(party.groupRoleMap.getUsersOf(party.getRole(StreamlineUser)));
                 List<String> names = new ArrayList<>();
                 users.forEach(a -> {
                     names.add(a.getName());
                 });
                 return names;
             }
-            if (strings[1].equalsIgnoreCase("demote")) {
-                GroupedUser user = GroupManager.getOrGetGroupedUser(savableUser.uuid);
+            if (strings[0].equalsIgnoreCase("demote")) {
+                GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUUID());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) return ModuleUtils.getOnlinePlayerNames();
-                if (! party.userHasFlag(savableUser, GroupFlag.PROMOTE)) return new ArrayList<>();
-                List<SavableUser> users = party.getAllUsers();
-                party.groupRoleMap.rolesAbove(party.getRole(savableUser)).forEach(a -> {
+                if (! party.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ArrayList<>();
+                List<StreamlineUser> users = party.getAllUsers();
+                party.groupRoleMap.rolesAbove(party.getRole(StreamlineUser)).forEach(a -> {
                     users.removeAll(party.groupRoleMap.getUsersOf(a));
                 });
-                users.removeAll(party.groupRoleMap.getUsersOf(party.getRole(savableUser)));
+                users.removeAll(party.groupRoleMap.getUsersOf(party.getRole(StreamlineUser)));
                 List<String> names = new ArrayList<>();
                 users.forEach(a -> {
                     names.add(a.getName());
                 });
                 return names;
+            }
+        }
+
+        if (strings.length == 3) {
+            if (strings[1].equalsIgnoreCase("promote") || strings[1].equalsIgnoreCase("demote")
+                    || strings[1].equalsIgnoreCase("accept") || strings[1].equalsIgnoreCase("deny")
+                    || strings[1].equalsIgnoreCase("invite")) {
+                if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
+                    return ModuleUtils.getOnlinePlayerNames();
+                }
             }
         }
 

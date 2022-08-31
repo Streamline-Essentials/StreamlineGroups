@@ -90,10 +90,10 @@ public class Configs extends ModularizedConfig {
         return resource.getBoolean("groups.guild.experience.announce.level-change.chat");
     }
 
-    public float guildPayoutExperienceAmount() {
+    public double guildPayoutExperienceAmount() {
         reloadResource();
 
-        return resource.getFloat("groups.guild.experience.payout.amount");
+        return resource.getDouble("groups.guild.experience.payout.amount");
     }
 
     public int guildPayoutExperienceEvery() {
@@ -108,10 +108,10 @@ public class Configs extends ModularizedConfig {
         return resource.getInt("groups.guild.experience.starting.level");
     }
 
-    public float guildStartingExperienceAmount() {
+    public double guildStartingExperienceAmount() {
         reloadResource();
 
-        return resource.getFloat("groups.guild.experience.starting.xp");
+        return resource.getDouble("groups.guild.experience.starting.xp");
     }
 
     public String guildLevelingEquation() {

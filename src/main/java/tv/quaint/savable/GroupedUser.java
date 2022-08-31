@@ -6,11 +6,17 @@ import lombok.Getter;
 import net.streamline.api.configs.StorageResource;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.savables.SavableResource;
+import net.streamline.api.savables.users.StreamlineUser;
 import tv.quaint.StreamlineGroups;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GroupedUser extends SavableResource {
+    @Override
+    public StorageResource<?> getStorageResource() {
+        return storageResource;
+    }
+
     @Getter
     private ConcurrentHashMap<Class<? extends SavableGroup>, String> associatedGroups = new ConcurrentHashMap<>();
 
@@ -83,5 +89,18 @@ public class GroupedUser extends SavableResource {
         for (Class<? extends SavableGroup> clazz : getAssociatedGroups().keySet()) {
             GroupManager.getRegisteredLoadOrders().get(clazz).accept(getAssociatedGroups().get(clazz));
         }
+    }
+
+    public boolean hasGroup(Class<? extends SavableGroup> clazz) {
+        if (! getAssociatedGroups().containsKey(clazz) || getAssociatedGroups().get(clazz) != null) {
+            return false;
+        }
+        SavableGroup group = GroupManager.getGroup(clazz, getAssociatedGroups().get(clazz));
+        if (group == null) return false;
+        return group.hasMember(asUser());
+    }
+
+    public StreamlineUser asUser() {
+        return ModuleUtils.getOrGetUser(this.uuid);
     }
 }

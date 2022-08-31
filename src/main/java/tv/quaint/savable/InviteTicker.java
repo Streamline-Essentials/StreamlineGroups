@@ -2,7 +2,7 @@ package tv.quaint.savable;
 
 import lombok.Getter;
 import net.streamline.api.modules.ModuleUtils;
-import net.streamline.api.savables.users.SavableUser;
+import net.streamline.api.savables.users.StreamlineUser;
 import net.streamline.api.scheduler.ModuleRunnable;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.guilds.SavableGuild;
@@ -12,11 +12,11 @@ public class InviteTicker<T extends SavableGroup> extends ModuleRunnable {
     @Getter
     private final T group;
     @Getter
-    private final SavableUser invited;
+    private final StreamlineUser invited;
     @Getter
-    private final SavableUser inviter;
+    private final StreamlineUser inviter;
 
-    public InviteTicker(T group, SavableUser invited, SavableUser inviter) {
+    public InviteTicker(T group, StreamlineUser invited, StreamlineUser inviter) {
         super(StreamlineGroups.getInstance(), 0, StreamlineGroups.getConfigs().inviteTimeout());
         this.group = group;
         this.invited = invited;

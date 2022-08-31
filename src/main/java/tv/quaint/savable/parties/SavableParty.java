@@ -1,11 +1,11 @@
 package tv.quaint.savable.parties;
 
 import net.streamline.api.savables.SavableResource;
-import net.streamline.api.savables.users.SavableUser;
+import net.streamline.api.savables.users.StreamlineUser;
 import tv.quaint.savable.SavableGroup;
 
 public class SavableParty extends SavableGroup {
-    public SavableParty(SavableUser leader) {
+    public SavableParty(StreamlineUser leader) {
         super(leader, SavableParty.class);
     }
 

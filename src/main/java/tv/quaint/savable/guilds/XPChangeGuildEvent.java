@@ -4,9 +4,9 @@ import lombok.Getter;
 
 public class XPChangeGuildEvent extends ExperienceSavableGuildEvent {
     @Getter
-    private final float oldAmount;
+    private final double oldAmount;
 
-    public XPChangeGuildEvent(SavableGuild guild, float oldAmount) {
+    public XPChangeGuildEvent(SavableGuild guild, double oldAmount) {
         super(guild);
         this.oldAmount = oldAmount;
     }
