@@ -1,11 +1,11 @@
 package tv.quaint.commands;
 
+import lombok.Getter;
 import net.streamline.api.command.ModuleCommand;
 import net.streamline.api.configs.given.MainMessagesHandler;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.modules.StreamlineModule;
 import net.streamline.api.savables.users.StreamlineUser;
-import net.streamline.api.utils.UUIDUtils;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.GroupManager;
 import tv.quaint.savable.GroupedUser;
@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class PartyCommand extends ModuleCommand {
+    @Getter
     private final String useOther;
 
     public PartyCommand(StreamlineModule module) {
@@ -40,29 +41,16 @@ public class PartyCommand extends ModuleCommand {
 
         switch (action) {
             case "create" -> {
-                if (strings.length == 1) {
-                    GroupManager.createParty(sender, sender);
-                    return;
-                }
-
-                StreamlineUser other = ModuleUtils.getOrGetUser(UUIDUtils.swapToUUID(strings[0]));
-
-                if (other == null) {
-                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
-                    return;
-                }
-
-                if (! ModuleUtils.hasPermission(sender, this.useOther)) {
-                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
-                    return;
-                }
-
-                if (strings.length > 2) {
+//                if (strings.length < 1) {
+//                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
+//                    return;
+//                }
+                if (strings.length > 1) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_MANY.get());
                     return;
                 }
 
-                GroupManager.createParty(sender, other);
+                GroupManager.createParty(sender, sender);
             }
             case "list" -> {
                 if (strings.length < 2) {
@@ -332,8 +320,18 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                if (strings.length == 2) {
-                    GroupManager.chatParty(sender, sender, ModuleUtils.argsToStringMinus(strings, 0));
+                String message = ModuleUtils.argsToStringMinus(strings, 0);
+
+                GroupManager.chatParty(sender, sender, message);
+            }
+            case "chat-as" -> {
+                if (strings.length < 3) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, useOther)) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
                     return;
                 }
 
@@ -344,14 +342,34 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                if (! ModuleUtils.hasPermission(sender, this.useOther)) {
+                String message = ModuleUtils.argsToStringMinus(strings, 0, 1);
+
+                GroupManager.chatParty(sender, other, message);
+            }
+            case "create-as" -> {
+                if (strings.length < 2) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
+                    return;
+                }
+
+                if (strings.length > 2) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_MANY.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, useOther)) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
                     return;
                 }
 
-                String message = ModuleUtils.argsToStringMinus(strings, 0, 1);
+                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                GroupManager.chatParty(sender, other, message);
+                if (other == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                GroupManager.createParty(sender, other);
             }
         }
     }
@@ -361,6 +379,7 @@ public class PartyCommand extends ModuleCommand {
         if (strings.length <= 1) {
             return List.of(
                     "create",
+                    "create-as",
                     "list",
                     "invite",
                     "accept",
@@ -370,11 +389,14 @@ public class PartyCommand extends ModuleCommand {
                     "demote",
                     "leave",
                     "chat",
-                    "rename"
+                    "chat-as"
             );
         }
         if (strings.length == 2) {
-            if (strings[0].equalsIgnoreCase("create") || strings[0].equalsIgnoreCase("list") || strings[0].equalsIgnoreCase("disband")) {
+            if (strings[0].equalsIgnoreCase("create") || strings[0].equalsIgnoreCase("create-as")) {
+                return List.of("<name>");
+            }
+            if (strings[0].equalsIgnoreCase("list") || strings[0].equalsIgnoreCase("disband")) {
                 if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
                     return ModuleUtils.getOnlinePlayerNames();
                 }
@@ -414,9 +436,10 @@ public class PartyCommand extends ModuleCommand {
         }
 
         if (strings.length == 3) {
-            if (strings[1].equalsIgnoreCase("promote") || strings[1].equalsIgnoreCase("demote")
-                    || strings[1].equalsIgnoreCase("accept") || strings[1].equalsIgnoreCase("deny")
-                    || strings[1].equalsIgnoreCase("invite")) {
+            if (strings[0].equalsIgnoreCase("promote") || strings[0].equalsIgnoreCase("demote")
+                    || strings[0].equalsIgnoreCase("accept") || strings[0].equalsIgnoreCase("deny")
+                    || strings[0].equalsIgnoreCase("invite") || strings[0].equalsIgnoreCase("create-as")
+                    || strings[0].equalsIgnoreCase("chat-as")) {
                 if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
                     return ModuleUtils.getOnlinePlayerNames();
                 }

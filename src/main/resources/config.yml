@@ -75,6 +75,19 @@ groups:
         xp: 0
       # The equation to use when calculating level up.
       equation: "10000 + (10000 * (%groups_guild_level% - 1))"
+    # Configurations for Guild names.
+    name:
+      # The regex to test on. If this regex matches any part of the Guild name, it will deny it.
+      # For regex help, please see this website (you can tinker around too): https://regex101.com/
+      disallowed-regex: "\bnigger|\bniggers|\bass|\bcunt|\bcunts"
+      # For determining if a name is valid by length...
+      length:
+        # Should the name's length check include formatting (&e, &o, &k, etc.)?
+        include-formatting: false
+        # Maximum length.
+        max: 10
+        # Minimum length.
+        min: 1
 # Settings for users.
 grouped-users:
   # Settings for saving users.
