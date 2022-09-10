@@ -85,6 +85,8 @@ public class SavableGuild extends SavableGroup {
     }
 
     public void setTotalXP(double amount){
+//        StreamlineGroups.getInstance().logInfo("Set Total XP to : " + amount);
+
         double old = this.totalXP;
 
         this.totalXP = amount;

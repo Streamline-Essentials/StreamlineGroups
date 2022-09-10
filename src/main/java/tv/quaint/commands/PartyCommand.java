@@ -24,7 +24,7 @@ public class PartyCommand extends ModuleCommand {
         super(module,
                 "party",
                 "streamline.command.party.default",
-                "g"
+                "p"
         );
 
         this.useOther = this.getCommandResource().getOrSetDefault("permissions.use.other", "streamline.command.party.others");

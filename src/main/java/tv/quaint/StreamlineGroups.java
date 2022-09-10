@@ -79,6 +79,7 @@ public class StreamlineGroups extends SimpleModule {
     @Override
     public void onLoad() {
         instance = this;
+        groupsExpansion = new GroupsExpansion();
     }
 
     @Override
@@ -110,15 +111,11 @@ public class StreamlineGroups extends SimpleModule {
         mainListener = new MainListener();
         ModuleUtils.listen(mainListener, this);
 
-        RATExpansion expansion = ModuleUtils.getRATAPI().getExpansionByIdentifier("groups");
-        while (expansion != null) {
-            ModuleUtils.getRATAPI().unregisterExpansion(expansion);
-            expansion = ModuleUtils.getRATAPI().getExpansionByIdentifier("groups");
-        }
-        groupsExpansion = new GroupsExpansion();
+       getGroupsExpansion().register();
     }
 
     @Override
     public void onDisable() {
+        getGroupsExpansion().unregister();
     }
 }

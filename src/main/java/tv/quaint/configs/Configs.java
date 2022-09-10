@@ -93,25 +93,25 @@ public class Configs extends ModularizedConfig {
     public double guildPayoutExperienceAmount() {
         reloadResource();
 
-        return resource.getDouble("groups.guild.experience.payout.amount");
+        return resource.getOrSetDefault("groups.guild.experience.payout.amount", 1.0D);
     }
 
     public int guildPayoutExperienceEvery() {
         reloadResource();
 
-        return resource.getInt("groups.guild.experience.payout.every");
+        return resource.getOrSetDefault("groups.guild.experience.payout.every", 400);
     }
 
     public int guildStartingLevel() {
         reloadResource();
 
-        return resource.getInt("groups.guild.experience.starting.level");
+        return resource.getOrSetDefault("groups.guild.experience.starting.level", 1);
     }
 
     public double guildStartingExperienceAmount() {
         reloadResource();
 
-        return resource.getDouble("groups.guild.experience.starting.xp");
+        return resource.getOrSetDefault("groups.guild.experience.starting.xp", 0.0D);
     }
 
     public String guildLevelingEquation() {
