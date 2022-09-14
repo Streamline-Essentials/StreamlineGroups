@@ -16,12 +16,12 @@ import tv.quaint.savable.parties.SavableParty;
 public class MainListener implements StreamlineListener {
     @EventProcessor
     public void updateLogin(LoginCompletedEvent event) {
-        GroupedUser user = GroupManager.getOrGetGroupedUser(event.getResource().getUUID());
+        GroupedUser user = GroupManager.getOrGetGroupedUser(event.getResource().getUuid());
         GroupManager.loadGroupedUser(user);
     }
 
     public void updateLogout(LogoutEvent event) {
-        GroupedUser user = GroupManager.getOrGetGroupedUser(event.getResource().getUUID());
+        GroupedUser user = GroupManager.getOrGetGroupedUser(event.getResource().getUuid());
         if (user.hasGroup(SavableParty.class)) {
             SavableParty party = user.getGroup(SavableParty.class);
             if (! areAnyOnline(party.getAllUsers().toArray(new StreamlineUser[0]))) {

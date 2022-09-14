@@ -114,7 +114,7 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
                 SavableGuild guild = user.getGroup(SavableGuild.class);
                 if (guild == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
@@ -153,7 +153,7 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
                 SavableGuild guild = user.getGroup(SavableGuild.class);
                 if (guild == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
@@ -192,7 +192,7 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
                 SavableGuild guild = user.getGroup(SavableGuild.class);
                 if (guild == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
@@ -219,7 +219,7 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(other.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(other.getUuid());
                 SavableGuild guild = user.getGroup(SavableGuild.class);
                 if (guild == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
@@ -258,7 +258,7 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
                 SavableGuild guild = user.getGroup(SavableGuild.class);
                 if (guild == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
@@ -297,7 +297,7 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
                 SavableGuild guild = user.getGroup(SavableGuild.class);
                 if (guild == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
@@ -444,7 +444,7 @@ public class GuildCommand extends ModuleCommand {
                 }
             }
             if (strings[0].equalsIgnoreCase("promote")) {
-                GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUuid());
                 SavableGuild guild = user.getGroup(SavableGuild.class);
                 if (guild == null) return ModuleUtils.getOnlinePlayerNames();
                 if (! guild.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ArrayList<>();
@@ -460,7 +460,7 @@ public class GuildCommand extends ModuleCommand {
                 return names;
             }
             if (strings[0].equalsIgnoreCase("demote")) {
-                GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUuid());
                 SavableGuild guild = user.getGroup(SavableGuild.class);
                 if (guild == null) return ModuleUtils.getOnlinePlayerNames();
                 if (! guild.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ArrayList<>();

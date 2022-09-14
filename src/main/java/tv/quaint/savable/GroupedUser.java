@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GroupedUser extends SavableResource {
     @Override
     public StorageResource<?> getStorageResource() {
-        return storageResource;
+        return super.getStorageResource();
     }
 
     @Getter
@@ -33,9 +33,9 @@ public class GroupedUser extends SavableResource {
     public void populateDefaults() {
         if (associatedGroups == null) return;
         associatedGroups.forEach((a, b) -> {
-            storageResource.getOrSetDefault("associated." + a.getSimpleName(), b);
+            getStorageResource().getOrSetDefault("associated." + a.getSimpleName(), b);
         });
-        storageResource.sync();
+        getStorageResource().sync();
     }
 
     @Override
@@ -44,10 +44,10 @@ public class GroupedUser extends SavableResource {
 
     public void loadAfter() {
         if (this.associatedGroups == null) this.associatedGroups = new ConcurrentHashMap<>();
-        storageResource.reloadResource(true);
+        getStorageResource().reloadResource(true);
 
         for (String clazz : GroupManager.getRegisteredClasses().keySet()) {
-            String uuid = storageResource.getOrSetDefault("associated." + clazz, "null");
+            String uuid = getStorageResource().getOrSetDefault("associated." + clazz, "null");
             if (uuid == null) continue;
             if (uuid.equals("null")) continue;
             associatedGroups.put(GroupManager.getRegisteredClass(clazz), uuid);
@@ -60,9 +60,9 @@ public class GroupedUser extends SavableResource {
     public void saveAll() {
         if (associatedGroups == null) return;
         associatedGroups.forEach((a, b) -> {
-            storageResource.write("associated." + a.getSimpleName(), b);
+            getStorageResource().write("associated." + a.getSimpleName(), b);
         });
-        storageResource.sync();
+        getStorageResource().sync();
     }
 
     public void associateWith(Class<? extends SavableGroup> groupType, String uuidOfGroup) {
@@ -101,6 +101,6 @@ public class GroupedUser extends SavableResource {
     }
 
     public StreamlineUser asUser() {
-        return ModuleUtils.getOrGetUser(this.uuid);
+        return ModuleUtils.getOrGetUser(this.getUuid());
     }
 }

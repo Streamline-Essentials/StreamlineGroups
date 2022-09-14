@@ -23,7 +23,7 @@ public class GroupRoleMap {
     public List<String> getIdentifiers() {
         List<String> r = new ArrayList<>();
 
-        for (String k : this.group.storageResource.map.keySet()) {
+        for (String k : this.group.getStorageResource().getMap().keySet()) {
             if (! k.startsWith("roles.")) continue;
             try {
                 String toAdd = k.replace("roles.", "").split("\\.", 2)[0];
@@ -39,11 +39,11 @@ public class GroupRoleMap {
 
     public void get() {
         getIdentifiers().forEach(a -> {
-            int priority = this.group.storageResource.getOrSetDefault("roles." + a + ".priority", 1);
-            int max = this.group.storageResource.getOrSetDefault("roles." + a + ".max", -1);
-            String name = this.group.storageResource.getOrSetDefault("roles." + a + ".name", "&cNAME");
-            List<String> flags = this.group.storageResource.getOrSetDefault("roles." + a + ".flags", new ArrayList<>());
-            List<String> memberUUIDs = this.group.storageResource.getOrSetDefault("roles." + a + ".members", new ArrayList<>());
+            int priority = this.group.getStorageResource().getOrSetDefault("roles." + a + ".priority", 1);
+            int max = this.group.getStorageResource().getOrSetDefault("roles." + a + ".max", -1);
+            String name = this.group.getStorageResource().getOrSetDefault("roles." + a + ".name", "&cNAME");
+            List<String> flags = this.group.getStorageResource().getOrSetDefault("roles." + a + ".flags", new ArrayList<>());
+            List<String> memberUUIDs = this.group.getStorageResource().getOrSetDefault("roles." + a + ".members", new ArrayList<>());
 
             SavableGroupRole role = new SavableGroupRole(a, priority, name, max, flags);
             List<StreamlineUser> users = new ArrayList<>();
@@ -84,7 +84,7 @@ public class GroupRoleMap {
 
             List<String> memberUUIDs = new ArrayList<>();
             getUsersOf(a).forEach(act -> {
-                memberUUIDs.add(act.getUUID());
+                memberUUIDs.add(act.getUuid());
             });
             this.group.set("roles." + a.getIdentifier() + ".members", memberUUIDs);
         });

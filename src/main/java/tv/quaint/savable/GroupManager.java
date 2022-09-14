@@ -4,6 +4,7 @@ import de.leonhard.storage.Config;
 import de.leonhard.storage.Json;
 import de.leonhard.storage.Toml;
 import lombok.Getter;
+import lombok.Setter;
 import net.streamline.api.configs.*;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.savables.SavableResource;
@@ -23,9 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class GroupManager {
-    @Getter
+    @Getter @Setter
     private static TreeMap<String, Class<? extends SavableGroup>> registeredClasses = new TreeMap<>();
-    @Getter
+    @Getter @Setter
     private static ConcurrentHashMap<Class<? extends SavableGroup>, Consumer<String>> registeredLoadOrders = new ConcurrentHashMap<>();
 
     public static void registerClass(Class<? extends SavableGroup> clazz, Consumer<String> consumer) {
@@ -37,7 +38,7 @@ public class GroupManager {
         return getRegisteredClasses().get(name);
     }
 
-    @Getter
+    @Getter @Setter
     private static List<GroupedUser> loadedGroupedUsers = new ArrayList<>();
 
     public static void loadGroupedUser(GroupedUser user) {
@@ -50,7 +51,7 @@ public class GroupManager {
 
     private static GroupedUser getGroupedUser(String uuid) {
         for (GroupedUser user : loadedGroupedUsers) {
-            if (user.uuid.equals(uuid)) return user;
+            if (user.getUuid().equals(uuid)) return user;
         }
         return null;
     }
@@ -66,13 +67,13 @@ public class GroupManager {
         return new GroupedUser(uuid, load);
     }
 
-    @Getter
+    @Getter @Setter
     private static ConcurrentHashMap<Class<? extends SavableGroup>, List<SavableGroup>> loadedGroups = new ConcurrentHashMap<>();
 
     public static void loadGroup(SavableGroup group) {
         List<SavableGroup> groups = getGroupsOf(group.getClass());
         for (SavableGroup g : groups) {
-            if (g.uuid.equals(group.uuid)) return;
+            if (g.getUuid().equals(group.getUuid())) return;
         }
         groups.add(group);
         getLoadedGroups().put(group.getClass(), groups);
@@ -105,7 +106,7 @@ public class GroupManager {
     }
     public static <T extends SavableGroup> T getGroup(Class<T> clazz, String uuid) {
         for (SavableGroup group : getGroupsOf(clazz)) {
-            if (group.uuid.equals(uuid)) return (T) group;
+            if (group.getUuid().equals(uuid)) return (T) group;
         }
         return null;
     }
@@ -210,7 +211,7 @@ public class GroupManager {
             return getGroupOfUser(SavableGuild.class, leader);
         }
 
-        SavableGuild guild = new SavableGuild(leader.getUUID());
+        SavableGuild guild = new SavableGuild(leader.getUuid());
         guild.name = name;
         guild.saveAll();
 
@@ -228,7 +229,7 @@ public class GroupManager {
             return getGroupOfUser(SavableParty.class, leader);
         }
 
-        SavableParty party = new SavableParty(leader.getUUID());
+        SavableParty party = new SavableParty(leader.getUuid());
         party.saveAll();
 
         ModuleUtils.sendMessage(leader, StreamlineGroups.getMessages().partiesCreate());
@@ -240,7 +241,7 @@ public class GroupManager {
     }
 
     public static void invitePlayerGuild(StreamlineUser sender, StreamlineUser other, StreamlineUser toInvite) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -248,7 +249,7 @@ public class GroupManager {
             return;
         }
 
-        GroupedUser user = getOrGetGroupedUser(toInvite.getUUID());
+        GroupedUser user = getOrGetGroupedUser(toInvite.getUuid());
         if (user.getGroup(SavableGuild.class) != null) {
             ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseAlreadyInOther());
             return;
@@ -277,7 +278,7 @@ public class GroupManager {
     }
 
     public static void invitePlayerParty(StreamlineUser sender, StreamlineUser other, StreamlineUser toInvite) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -285,7 +286,7 @@ public class GroupManager {
             return;
         }
 
-        GroupedUser user = getOrGetGroupedUser(toInvite.getUUID());
+        GroupedUser user = getOrGetGroupedUser(toInvite.getUuid());
         if (user.getGroup(SavableParty.class) != null) {
             ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseAlreadyInOther());
             return;
@@ -314,7 +315,7 @@ public class GroupManager {
     }
 
     public static void acceptInviteGuild(StreamlineUser sender, StreamlineUser other, StreamlineUser invited) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -322,7 +323,7 @@ public class GroupManager {
             return;
         }
 
-        GroupedUser groupedInvited = getOrGetGroupedUser(invited.getUUID());
+        GroupedUser groupedInvited = getOrGetGroupedUser(invited.getUuid());
         SavableGuild already = groupedInvited.getGroup(SavableGuild.class);
 
         if (already != null) {
@@ -359,7 +360,7 @@ public class GroupManager {
     }
 
     public static void acceptInviteParty(StreamlineUser sender, StreamlineUser other, StreamlineUser invited) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -367,7 +368,7 @@ public class GroupManager {
             return;
         }
 
-        GroupedUser groupedInvited = getOrGetGroupedUser(invited.getUUID());
+        GroupedUser groupedInvited = getOrGetGroupedUser(invited.getUuid());
         SavableParty already = groupedInvited.getGroup(SavableParty.class);
 
         if (already != null) {
@@ -404,7 +405,7 @@ public class GroupManager {
     }
 
     public static void denyInviteGuild(StreamlineUser sender, StreamlineUser other, StreamlineUser invited) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -440,7 +441,7 @@ public class GroupManager {
     }
 
     public static void denyInviteParty(StreamlineUser sender, StreamlineUser other, StreamlineUser invited) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -476,7 +477,7 @@ public class GroupManager {
     }
 
     public static void listGuild(StreamlineUser sender, StreamlineUser other) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -505,7 +506,7 @@ public class GroupManager {
     }
 
     public static void listParty(StreamlineUser sender, StreamlineUser other) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -534,7 +535,7 @@ public class GroupManager {
     }
 
     public static void disbandGuild(StreamlineUser sender, StreamlineUser other) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -567,7 +568,7 @@ public class GroupManager {
     }
 
     public static void disbandParty(StreamlineUser sender, StreamlineUser other) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -600,7 +601,7 @@ public class GroupManager {
     }
 
     public static void promoteGuild(StreamlineUser sender, StreamlineUser other, StreamlineUser promote) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -662,7 +663,7 @@ public class GroupManager {
     }
 
     public static void promoteParty(StreamlineUser sender, StreamlineUser other, StreamlineUser promote) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -724,7 +725,7 @@ public class GroupManager {
     }
 
     public static void demoteGuild(StreamlineUser sender, StreamlineUser other, StreamlineUser promote) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -786,7 +787,7 @@ public class GroupManager {
     }
 
     public static void demoteParty(StreamlineUser sender, StreamlineUser other, StreamlineUser promote) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -848,7 +849,7 @@ public class GroupManager {
     }
 
     public static void leaveGuild(StreamlineUser sender, StreamlineUser other) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -889,7 +890,7 @@ public class GroupManager {
     }
 
     public static void leaveParty(StreamlineUser sender, StreamlineUser other) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -930,7 +931,7 @@ public class GroupManager {
     }
 
     public static void chatGuild(StreamlineUser sender, StreamlineUser other, String message) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {
@@ -947,7 +948,7 @@ public class GroupManager {
     }
 
     public static void chatParty(StreamlineUser sender, StreamlineUser other, String message) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
         if (party == null) {
@@ -964,7 +965,7 @@ public class GroupManager {
     }
 
     public static void renameGuild(StreamlineUser sender, StreamlineUser other, String name) {
-        GroupedUser groupedUser = getOrGetGroupedUser(other.getUUID());
+        GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
         if (guild == null) {

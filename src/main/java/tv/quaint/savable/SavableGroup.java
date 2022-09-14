@@ -15,7 +15,7 @@ import java.util.*;
 public abstract class SavableGroup extends SavableResource {
     @Override
     public StorageResource<?> getStorageResource() {
-        return storageResource;
+        return super.getStorageResource();
     }
 
     public StreamlineUser owner;
@@ -27,7 +27,7 @@ public abstract class SavableGroup extends SavableResource {
     public GroupRoleMap groupRoleMap;
 
     public SavableGroup(StreamlineUser owner, Class<? extends SavableGroup> clazz) {
-        this(owner.getUUID(), clazz);
+        this(owner.getUuid(), clazz);
     }
 
     public SavableGroup(String uuid, Class<? extends SavableGroup> clazz) {
@@ -36,11 +36,11 @@ public abstract class SavableGroup extends SavableResource {
         groupRoleMap = new GroupRoleMap(this);
         groupRoleMap.applyUser(groupRoleMap.getRolesOrdered().lastEntry().getValue(), this.owner);
         GroupedUser u = GroupManager.getOrGetGroupedUser(uuid, false);
-        u.associateWith(this.getClass(), this.uuid);
+        u.associateWith(this.getClass(), getUuid());
         GroupManager.loadGroup(this);
 
         StreamlineGroups.getInstance().logInfo("Done creating object!");
-        StreamlineGroups.getInstance().logInfo("Exists: " + storageResource.exists());
+        StreamlineGroups.getInstance().logInfo("Exists: " + getStorageResource().exists());
     }
 
     @Override
@@ -72,9 +72,9 @@ public abstract class SavableGroup extends SavableResource {
         List<String> uuids = new ArrayList<>();
 
         for (StreamlineUser user : users) {
-            if (uuids.contains(user.getUUID())) continue;
+            if (uuids.contains(user.getUuid())) continue;
 
-            uuids.add(user.getUUID());
+            uuids.add(user.getUuid());
         }
 
         return uuids;
@@ -107,7 +107,7 @@ public abstract class SavableGroup extends SavableResource {
 
         saveMore();
 
-        storageResource.sync();
+        getStorageResource().sync();
     }
 
     abstract public void saveMore();
@@ -115,26 +115,26 @@ public abstract class SavableGroup extends SavableResource {
     public void addMember(StreamlineUser user) {
         groupRoleMap.addUser(user);
         remFromInvites(user);
-        GroupedUser u = GroupManager.getOrGetGroupedUser(user.getUUID());
-        u.associateWith(this.getClass(), this.uuid);
+        GroupedUser u = GroupManager.getOrGetGroupedUser(user.getUuid());
+        u.associateWith(this.getClass(), this.getUuid());
     }
 
     public void removeMember(StreamlineUser user) {
         groupRoleMap.removeUserAll(user);
         remFromInvites(user);
-        GroupedUser u = GroupManager.getOrGetGroupedUser(user.getUUID());
-        u.disassociateWith(this.getClass(), this.uuid);
+        GroupedUser u = GroupManager.getOrGetGroupedUser(user.getUuid());
+        u.disassociateWith(this.getClass(), this.getUuid());
     }
 
     public void setOwner(StreamlineUser user) {
         this.owner = user;
-        this.storageResource.delete();
-        this.storageResource = GroupManager.newStorageResource(user.getUUID(), this.getClass());
-        if (this.storageResource == null) {
-            StreamlineGroups.getInstance().logSevere(this.getClass().getSimpleName() + " with uuid '" + this.uuid + "' could not set the owner!");
+        this.getStorageResource().delete();
+        this.setStorageResource(GroupManager.newStorageResource(user.getUuid(), this.getClass()));
+        if (this.getStorageResource() == null) {
+            StreamlineGroups.getInstance().logSevere(this.getClass().getSimpleName() + " with uuid '" + this.getUuid() + "' could not set the owner!");
             return;
         }
-        this.storageResource.reloadResource(true);
+        this.getStorageResource().reloadResource(true);
         this.saveAll();
     }
 
@@ -148,7 +148,7 @@ public abstract class SavableGroup extends SavableResource {
 
     public boolean hasInvite(StreamlineUser user) {
         for (StreamlineUser u : getInvitesAsUsers()) {
-            if (u.getUUID().equals(user.getUUID())) return true;
+            if (u.getUuid().equals(user.getUuid())) return true;
         }
         return false;
     }
@@ -226,7 +226,7 @@ public abstract class SavableGroup extends SavableResource {
     }
 
     public void setMaxSize(int size){
-        StreamlineUser user = ModuleUtils.getOrGetUser(uuid);
+        StreamlineUser user = ModuleUtils.getOrGetUser(getUuid());
         if (user == null) return;
 
         if (size <= getMaxSize(user))
@@ -267,13 +267,13 @@ public abstract class SavableGroup extends SavableResource {
 
     public void disband(){
         for (StreamlineUser member : groupRoleMap.getAllUsers()) {
-            GroupedUser user = GroupManager.getOrGetGroupedUser(member.getUUID());
-            user.disassociateWith(this.getClass(), this.uuid);
+            GroupedUser user = GroupManager.getOrGetGroupedUser(member.getUuid());
+            user.disassociateWith(this.getClass(), this.getUuid());
         }
 
         GroupManager.removeGroupOf(this);
 
-        storageResource.delete();
+        getStorageResource().delete();
 
         try {
             dispose();

@@ -14,6 +14,8 @@ import tv.quaint.configs.Messages;
 import tv.quaint.listeners.MainListener;
 import tv.quaint.placeholders.GroupsExpansion;
 import tv.quaint.savable.GroupManager;
+import tv.quaint.savable.GroupedUser;
+import tv.quaint.savable.SavableGroup;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
 import tv.quaint.timers.GroupSaver;
@@ -111,11 +113,15 @@ public class StreamlineGroups extends SimpleModule {
         mainListener = new MainListener();
         ModuleUtils.listen(mainListener, this);
 
-       getGroupsExpansion().register();
+        getGroupsExpansion().register();
     }
 
     @Override
     public void onDisable() {
+        GroupManager.getLoadedGroups().forEach((clazz, savableGroups) -> {
+            savableGroups.forEach(SavableGroup::saveAll);
+        });
+        GroupManager.getLoadedGroupedUsers().forEach(GroupedUser::saveAll);
         getGroupsExpansion().unregister();
     }
 }

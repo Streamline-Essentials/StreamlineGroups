@@ -102,7 +102,7 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
@@ -141,7 +141,7 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
@@ -180,7 +180,7 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
@@ -207,7 +207,7 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(other.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(other.getUuid());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
@@ -246,7 +246,7 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
@@ -285,7 +285,7 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
@@ -402,7 +402,7 @@ public class PartyCommand extends ModuleCommand {
                 }
             }
             if (strings[0].equalsIgnoreCase("promote")) {
-                GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUuid());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) return ModuleUtils.getOnlinePlayerNames();
                 if (! party.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ArrayList<>();
@@ -418,7 +418,7 @@ public class PartyCommand extends ModuleCommand {
                 return names;
             }
             if (strings[0].equalsIgnoreCase("demote")) {
-                GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUUID());
+                GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUuid());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) return ModuleUtils.getOnlinePlayerNames();
                 if (! party.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ArrayList<>();
