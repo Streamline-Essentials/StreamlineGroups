@@ -61,13 +61,13 @@ public class SavableGuild extends SavableGroup {
         setLevel(this.level - amount);
     }
 
-    public double getNeededXp(){
-        double needed = 0;
+    public float getNeededXp(){
+        float needed = 0;
 
-        String function = ModuleUtils.replaceAllPlayerBungee(this.getMember(this.getUuid()), StreamlineGroups.getConfigs().guildLevelingEquation())
+        String function = ModuleUtils.replaceAllPlayerBungee(this.getMember(this.getUuid()), StreamlineGroups.getConfigs().guildLevelingEquation().replace("%groups_guild_level%", String.valueOf(this.level)))
                 .replace("%default_level%", String.valueOf(StreamlineGroups.getConfigs().guildStartingLevel()));
 
-        needed = (double) MathUtils.eval(function);
+        needed = (float) MathUtils.eval(function);
 
         return needed;
     }
@@ -100,13 +100,13 @@ public class SavableGuild extends SavableGroup {
         ModuleUtils.fireEvent(new XPChangeGuildEvent(this, old));
     }
 
-    public double getCurrentLevelXP(){
-        double needed = 0;
+    public float getCurrentLevelXP(){
+        float needed = 0;
 
         String function = ModuleUtils.replaceAllPlayerBungee(this.getMember(this.getUuid()), StreamlineGroups.getConfigs().guildLevelingEquation().replace("%groups_guild_level%", String.valueOf(this.level - 1)))
                 .replace("%default_level%", String.valueOf(StreamlineGroups.getConfigs().guildStartingLevel()));
 
-        needed = (double) MathUtils.eval(function);
+        needed = (float) MathUtils.eval(function);
 
         return needed;
     }

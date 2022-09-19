@@ -105,3 +105,9 @@ parties:
     main: "&7&l----+ &5Party List &7+----%this_for_roles%"
     role: "%newline%%this_role_name%&8: %this_role_members%"
   chat: "&5Party &7&l> &d%streamline_parse_%this_sender%:::*/*streamline_user_formatted*/*%&8: &f%this_message%"
+
+placeholders:
+  guild:
+    not-found: "&cNo Guild Found"
+  party:
+    not-found: "&cNo Party Found"

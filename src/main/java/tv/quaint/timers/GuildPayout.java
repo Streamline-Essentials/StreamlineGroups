@@ -8,7 +8,7 @@ import tv.quaint.savable.guilds.SavableGuild;
 
 public class GuildPayout extends ModuleRunnable {
     public GuildPayout() {
-        super(StreamlineGroups.getInstance(), 0, StreamlineGroups.getConfigs().guildPayoutExperienceEvery());
+        super(StreamlineGroups.getInstance(), 0, 400L);
     }
 
     @Override

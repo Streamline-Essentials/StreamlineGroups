@@ -6,6 +6,7 @@ import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.modules.SimpleModule;
 import net.streamline.api.modules.dependencies.Dependency;
 import net.streamline.api.placeholder.RATExpansion;
+import net.streamline.api.utils.UserUtils;
 import tv.quaint.commands.GuildCommand;
 import tv.quaint.commands.PartyCommand;
 import tv.quaint.configs.Configs;
@@ -114,12 +115,17 @@ public class StreamlineGroups extends SimpleModule {
         ModuleUtils.listen(mainListener, this);
 
         getGroupsExpansion().register();
+
+        UserUtils.getLoadedUsersSet().forEach(a -> {
+            GroupedUser user = GroupManager.getOrGetGroupedUser(a.getUuid());
+            GroupManager.loadGroupedUser(user);
+        });
     }
 
     @Override
     public void onDisable() {
         GroupManager.getLoadedGroups().forEach((clazz, savableGroups) -> {
-            savableGroups.forEach(SavableGroup::saveAll);
+            savableGroups.forEach(GroupManager::removeGroupOf);
         });
         GroupManager.getLoadedGroupedUsers().forEach(GroupedUser::saveAll);
         getGroupsExpansion().unregister();

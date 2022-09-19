@@ -3,6 +3,7 @@ package tv.quaint.placeholders;
 import lombok.Getter;
 import lombok.Setter;
 import net.streamline.api.SLAPI;
+import net.streamline.api.configs.given.MainMessagesHandler;
 import net.streamline.api.interfaces.IStreamline;
 import net.streamline.api.messages.ProxyMessageHelper;
 import net.streamline.api.modules.ModuleUtils;
@@ -15,6 +16,7 @@ import tv.quaint.savable.SavableGroupRole;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
 
+import java.util.Date;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -47,12 +49,12 @@ public class GroupsExpansion extends RATExpansion {
     }
 
     @Override
-    public String onRequest(StreamlineUser StreamlineUser, String params) {
+    public String onRequest(StreamlineUser streamlineUser, String params) {
         if (SLAPI.getInstance().getPlatform().getServerType().equals(IStreamline.ServerType.PROXY)) {
             if (params.startsWith("guild_")) {
-                SavableGuild guild = GroupManager.getGroupOfUser(SavableGuild.class, StreamlineUser);
+                SavableGuild guild = GroupManager.getGroupOfUser(SavableGuild.class, streamlineUser);
                 if (guild == null) {
-                    return null;
+                    return StreamlineGroups.getMessages().placeholdersGuildNotFound();
                 }
                 if (params.equals("guild_level")) {
                     return String.valueOf(guild.level);
@@ -67,7 +69,7 @@ public class GroupsExpansion extends RATExpansion {
                     return guild.name;
                 }
                 if (params.startsWith("guild_role_")) {
-                    SavableGroupRole role = guild.getRole(StreamlineUser);
+                    SavableGroupRole role = guild.getRole(streamlineUser);
                     if (role == null) return null;
                     if (params.equals("guild_role_identifier")) {
                         return String.valueOf(role.getIdentifier());
@@ -108,12 +110,12 @@ public class GroupsExpansion extends RATExpansion {
                 }
             }
             if (params.startsWith("party_")) {
-                SavableParty party = GroupManager.getGroupOfUser(SavableParty.class, StreamlineUser);
+                SavableParty party = GroupManager.getGroupOfUser(SavableParty.class, streamlineUser);
                 if (party == null) {
-                    return null;
+                    return StreamlineGroups.getMessages().placeholdersPartyNotFound();
                 }
                 if (params.startsWith("party_role_")) {
-                    SavableGroupRole role = party.getRole(StreamlineUser);
+                    SavableGroupRole role = party.getRole(streamlineUser);
                     if (role == null) return null;
                     if (params.equals("party_role_identifier")) {
                         return String.valueOf(role.getIdentifier());
@@ -154,7 +156,7 @@ public class GroupsExpansion extends RATExpansion {
                 }
             }
         } else {
-            return ProxyMessageHelper.parseOnProxy("%" + getIdentifier() + "_" + params + "%", StreamlineUser);
+            return ProxyMessageHelper.parseOnProxy("%" + getIdentifier() + "_" + params + "%", streamlineUser);
         }
         return null;
     }

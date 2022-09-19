@@ -20,6 +20,7 @@ public class MainListener implements StreamlineListener {
         GroupManager.loadGroupedUser(user);
     }
 
+    @EventProcessor
     public void updateLogout(LogoutEvent event) {
         GroupedUser user = GroupManager.getOrGetGroupedUser(event.getResource().getUuid());
         if (user.hasGroup(SavableParty.class)) {

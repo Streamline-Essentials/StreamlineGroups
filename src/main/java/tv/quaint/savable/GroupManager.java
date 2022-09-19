@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Consumer;
 
 public class GroupManager {
@@ -68,10 +69,10 @@ public class GroupManager {
     }
 
     @Getter @Setter
-    private static ConcurrentHashMap<Class<? extends SavableGroup>, List<SavableGroup>> loadedGroups = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<Class<? extends SavableGroup>, ConcurrentSkipListSet<SavableGroup>> loadedGroups = new ConcurrentHashMap<>();
 
     public static void loadGroup(SavableGroup group) {
-        List<SavableGroup> groups = getGroupsOf(group.getClass());
+        ConcurrentSkipListSet<SavableGroup> groups = getGroupsOf(group.getClass());
         for (SavableGroup g : groups) {
             if (g.getUuid().equals(group.getUuid())) return;
         }
@@ -79,9 +80,9 @@ public class GroupManager {
         getLoadedGroups().put(group.getClass(), groups);
     }
 
-    public static List<SavableGroup> getGroupsOf(Class<? extends SavableGroup> clazz) {
-        List<SavableGroup> groups = getLoadedGroups().get(clazz);
-        if (groups == null) groups = new ArrayList<>();
+    public static ConcurrentSkipListSet<SavableGroup> getGroupsOf(Class<? extends SavableGroup> clazz) {
+        ConcurrentSkipListSet<SavableGroup> groups = getLoadedGroups().get(clazz);
+        if (groups == null) groups = new ConcurrentSkipListSet<>();
         getLoadedGroups().put(clazz, groups);
         return groups;
     }
@@ -91,6 +92,7 @@ public class GroupManager {
     }
 
     public static void removeGroupOf(SavableGroup group) {
+        group.saveAll();
         getGroupsOf(group.getClass()).remove(group);
     }
 

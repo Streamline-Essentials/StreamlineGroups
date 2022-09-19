@@ -452,6 +452,18 @@ public class Messages extends ModularizedConfig {
     public String partiesChat() {
         reloadResource();
 
-        return resource.getString("parties.chat");
+        return resource.getOrSetDefault("parties.chat", "&5Party &7&l> &d%streamline_parse_%this_sender%:::*/*streamline_user_formatted*/*%&8: &f%this_message%");
+    }
+
+    public String placeholdersGuildNotFound() {
+        reloadResource();
+
+        return resource.getOrSetDefault("placeholders.guild.not-found", "&cNo Guild Found");
+    }
+
+    public String placeholdersPartyNotFound() {
+        reloadResource();
+
+        return resource.getOrSetDefault("placeholders.party.not-found", "&cNo Party Found");
     }
 }
