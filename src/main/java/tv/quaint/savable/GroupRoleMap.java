@@ -10,10 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class GroupRoleMap {
     public SavableGroup group;
-    public ConcurrentHashMap<SavableGroupRole, List<StreamlineUser>> roles = new ConcurrentHashMap<>();
+    public ConcurrentSkipListMap<SavableGroupRole, ConcurrentSkipListSet<StreamlineUser>> roles = new ConcurrentSkipListMap<>();
 
     public GroupRoleMap(SavableGroup group) {
         this.group = group;
@@ -42,11 +44,11 @@ public class GroupRoleMap {
             int priority = this.group.getStorageResource().getOrSetDefault("roles." + a + ".priority", 1);
             int max = this.group.getStorageResource().getOrSetDefault("roles." + a + ".max", -1);
             String name = this.group.getStorageResource().getOrSetDefault("roles." + a + ".name", "&cNAME");
-            List<String> flags = this.group.getStorageResource().getOrSetDefault("roles." + a + ".flags", new ArrayList<>());
-            List<String> memberUUIDs = this.group.getStorageResource().getOrSetDefault("roles." + a + ".members", new ArrayList<>());
+            ConcurrentSkipListSet<String> flags = new ConcurrentSkipListSet<>(this.group.getStorageResource().getOrSetDefault("roles." + a + ".flags", new ArrayList<>()));
+            ConcurrentSkipListSet<String> memberUUIDs = new ConcurrentSkipListSet<>(this.group.getStorageResource().getOrSetDefault("roles." + a + ".members", new ArrayList<>()));
 
             SavableGroupRole role = new SavableGroupRole(a, priority, name, max, flags);
-            List<StreamlineUser> users = new ArrayList<>();
+            ConcurrentSkipListSet<StreamlineUser> users = new ConcurrentSkipListSet<>();
             memberUUIDs.forEach(act -> {
                 users.add(ModuleUtils.getOrGetUser(act));
             });
@@ -90,23 +92,23 @@ public class GroupRoleMap {
         });
     }
 
-    public void addSavableGroup(SavableGroupRole role, List<StreamlineUser> users) {
+    public void addSavableGroup(SavableGroupRole role, ConcurrentSkipListSet<StreamlineUser> users) {
         roles.put(role, users);
     }
 
     public void addSavableGroup(SavableGroupRole role) {
-        addSavableGroup(role, new ArrayList<>());
+        addSavableGroup(role, new ConcurrentSkipListSet<>());
     }
 
-    public List<StreamlineUser> getUsersOf(SavableGroupRole role) {
-        List<StreamlineUser> users = roles.get(role);
-        if (users == null) return new ArrayList<>();
+    public ConcurrentSkipListSet<StreamlineUser> getUsersOf(SavableGroupRole role) {
+        ConcurrentSkipListSet<StreamlineUser> users = roles.get(role);
+        if (users == null) return new ConcurrentSkipListSet<>();
         return users;
     }
 
     public void applyUser(SavableGroupRole role, StreamlineUser user) {
         removeUserAll(user);
-        List<StreamlineUser> users = getUsersOf(role);
+        ConcurrentSkipListSet<StreamlineUser> users = getUsersOf(role);
         users.add(user);
     }
 
@@ -118,8 +120,8 @@ public class GroupRoleMap {
         return r;
     }
 
-    public List<StreamlineUser> getAllUsers() {
-        List<StreamlineUser> r = new ArrayList<>();
+    public ConcurrentSkipListSet<StreamlineUser> getAllUsers() {
+        ConcurrentSkipListSet<StreamlineUser> r = new ConcurrentSkipListSet<>();
 
         getRoles().forEach(a -> {
             getUsersOf(a).forEach(act -> {
@@ -146,8 +148,8 @@ public class GroupRoleMap {
         roles.forEach((role, StreamlineUsers) -> StreamlineUsers.remove(user));
     }
 
-    public List<SavableGroupRole> getRoles() {
-        return new ArrayList<>(roles.keySet());
+    public ConcurrentSkipListSet<SavableGroupRole> getRoles() {
+        return new ConcurrentSkipListSet<>(roles.keySet());
     }
 
     public TreeMap<Float, SavableGroupRole> getRolesOrdered() {
@@ -239,8 +241,8 @@ public class GroupRoleMap {
         return entry.getValue();
     }
 
-    public List<SavableGroupRole> rolesAbove(SavableGroupRole role) {
-        List<SavableGroupRole> r = new ArrayList<>();
+    public ConcurrentSkipListSet<SavableGroupRole> rolesAbove(SavableGroupRole role) {
+        ConcurrentSkipListSet<SavableGroupRole> r = new ConcurrentSkipListSet<>();
         if (! getRoles().contains(role)) return r;
 
         SavableGroupRole toCheck = getHigherRole(role);
@@ -252,8 +254,8 @@ public class GroupRoleMap {
         return r;
     }
 
-    public List<SavableGroupRole> rolesBelow(SavableGroupRole role) {
-        List<SavableGroupRole> r = new ArrayList<>();
+    public ConcurrentSkipListSet<SavableGroupRole> rolesBelow(SavableGroupRole role) {
+        ConcurrentSkipListSet<SavableGroupRole> r = new ConcurrentSkipListSet<>();
         if (! getRoles().contains(role)) return r;
 
         SavableGroupRole toCheck = getLowerRole(role);

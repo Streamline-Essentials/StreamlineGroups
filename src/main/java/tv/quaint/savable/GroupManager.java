@@ -12,8 +12,10 @@ import net.streamline.api.savables.users.StreamlineUser;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.flags.GroupFlag;
 import tv.quaint.savable.guilds.CreateGuildEvent;
+import tv.quaint.savable.guilds.GuildChatEvent;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.CreatePartyEvent;
+import tv.quaint.savable.parties.PartyChatEvent;
 import tv.quaint.savable.parties.SavableParty;
 
 import java.io.File;
@@ -497,7 +499,7 @@ public class GroupManager {
                     .replace("%this_role_name%", a.getName())
                     .replace("%this_role_max%", String.valueOf(a.getMax()))
                     .replace("%this_role_priority%", String.valueOf(a.getPriority()))
-                    .replace("%this_role_flags%", ModuleUtils.getListAsFormattedString(a.getFlags()))
+                    .replace("%this_role_flags%", ModuleUtils.getListAsFormattedString(a.getFlags().stream().toList()))
                     .replace("%this_role_members%", ModuleUtils.getListAsFormattedString(formattedNames))
             );
         });
@@ -526,7 +528,7 @@ public class GroupManager {
                     .replace("%this_role_name%", a.getName())
                     .replace("%this_role_max%", String.valueOf(a.getMax()))
                     .replace("%this_role_priority%", String.valueOf(a.getPriority()))
-                    .replace("%this_role_flags%", ModuleUtils.getListAsFormattedString(a.getFlags()))
+                    .replace("%this_role_flags%", ModuleUtils.getListAsFormattedString(a.getFlags().stream().toList()))
                     .replace("%this_role_members%", ModuleUtils.getListAsFormattedString(formattedNames))
             );
         });
@@ -947,6 +949,8 @@ public class GroupManager {
                     .replace("%this_message%", message)
             );
         }
+
+        ModuleUtils.fireEvent(new GuildChatEvent(guild, sender, message));
     }
 
     public static void chatParty(StreamlineUser sender, StreamlineUser other, String message) {
@@ -964,6 +968,8 @@ public class GroupManager {
                     .replace("%this_message%", message)
             );
         }
+
+        ModuleUtils.fireEvent(new PartyChatEvent(party, sender, message));
     }
 
     public static void renameGuild(StreamlineUser sender, StreamlineUser other, String name) {

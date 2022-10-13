@@ -5,9 +5,37 @@ import net.streamline.api.configs.ModularizedConfig;
 import net.streamline.api.configs.StorageUtils;
 import tv.quaint.StreamlineGroups;
 
+import java.util.HashMap;
+
 public class Configs extends ModularizedConfig {
     public Configs() {
         super(StreamlineGroups.getInstance(), "config.yml", true);
+        init();
+    }
+
+    public void init() {
+        savingUse();
+        savingUri();
+        savingDatabase();
+        savingPrefix();
+
+        getOrSetDefault("groups.base.maximum", new HashMap<>());
+        getOrSetDefault("groups.party.maximum", new HashMap<>());
+        getOrSetDefault("groups.guild.maximum", new HashMap<>());
+
+        inviteTimeout();
+
+        announceLevelChangeTitle();
+        announceLevelChangeChat();
+        guildPayoutExperienceAmount();
+        guildPayoutExperienceEvery();
+        guildStartingLevel();
+        guildLevelingEquation();
+
+        savingUseUsers();
+        savingUriUsers();
+        savingDatabaseUsers();
+        savingPrefixUsers();
     }
 
     public StorageUtils.StorageType savingUse() {

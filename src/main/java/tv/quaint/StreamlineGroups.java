@@ -7,6 +7,7 @@ import net.streamline.api.modules.SimpleModule;
 import net.streamline.api.modules.dependencies.Dependency;
 import net.streamline.api.placeholder.RATExpansion;
 import net.streamline.api.utils.UserUtils;
+import org.pf4j.PluginWrapper;
 import tv.quaint.commands.GuildCommand;
 import tv.quaint.commands.PartyCommand;
 import tv.quaint.configs.Configs;
@@ -56,19 +57,8 @@ public class StreamlineGroups extends SimpleModule {
     @Getter
     static GroupsExpansion groupsExpansion;
 
-    @Override
-    public String identifier() {
-        return "streamline-groups";
-    }
-
-    @Override
-    public List<String> authors() {
-        return List.of("Quaint");
-    }
-
-    @Override
-    public List<Dependency> dependencies() {
-        return Collections.emptyList();
+    public StreamlineGroups(PluginWrapper wrapper) {
+        super(wrapper);
     }
 
     @Override

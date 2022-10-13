@@ -15,6 +15,7 @@ import tv.quaint.savable.parties.SavableParty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class PartyCommand extends ModuleCommand {
     @Getter
@@ -32,7 +33,7 @@ public class PartyCommand extends ModuleCommand {
 
     @Override
     public void run(StreamlineUser sender, String[] strings) {
-        if (strings.length < 1) {
+        if (strings[0].equals("")) {
             ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
             return;
         }
@@ -375,9 +376,9 @@ public class PartyCommand extends ModuleCommand {
     }
 
     @Override
-    public List<String> doTabComplete(StreamlineUser StreamlineUser, String[] strings) {
+    public ConcurrentSkipListSet<String> doTabComplete(StreamlineUser StreamlineUser, String[] strings) {
         if (strings.length <= 1) {
-            return List.of(
+            return new ConcurrentSkipListSet<>(List.of(
                     "create",
                     "create-as",
                     "list",
@@ -390,11 +391,11 @@ public class PartyCommand extends ModuleCommand {
                     "leave",
                     "chat",
                     "chat-as"
-            );
+            ));
         }
         if (strings.length == 2) {
             if (strings[0].equalsIgnoreCase("create") || strings[0].equalsIgnoreCase("create-as")) {
-                return List.of("<name>");
+                return new ConcurrentSkipListSet<>(List.of("<name>"));
             }
             if (strings[0].equalsIgnoreCase("list") || strings[0].equalsIgnoreCase("disband")) {
                 if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
@@ -405,13 +406,13 @@ public class PartyCommand extends ModuleCommand {
                 GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUuid());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) return ModuleUtils.getOnlinePlayerNames();
-                if (! party.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ArrayList<>();
-                List<StreamlineUser> users = party.getAllUsers();
+                if (! party.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ConcurrentSkipListSet<>();
+                ConcurrentSkipListSet<StreamlineUser> users = party.getAllUsers();
                 party.groupRoleMap.rolesAbove(party.getRole(StreamlineUser)).forEach(a -> {
                     users.removeAll(party.groupRoleMap.getUsersOf(a));
                 });
                 users.removeAll(party.groupRoleMap.getUsersOf(party.getRole(StreamlineUser)));
-                List<String> names = new ArrayList<>();
+                ConcurrentSkipListSet<String> names = new ConcurrentSkipListSet<>();
                 users.forEach(a -> {
                     names.add(a.getName());
                 });
@@ -421,13 +422,13 @@ public class PartyCommand extends ModuleCommand {
                 GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUuid());
                 SavableParty party = user.getGroup(SavableParty.class);
                 if (party == null) return ModuleUtils.getOnlinePlayerNames();
-                if (! party.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ArrayList<>();
-                List<StreamlineUser> users = party.getAllUsers();
+                if (! party.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ConcurrentSkipListSet<>();
+                ConcurrentSkipListSet<StreamlineUser> users = party.getAllUsers();
                 party.groupRoleMap.rolesAbove(party.getRole(StreamlineUser)).forEach(a -> {
                     users.removeAll(party.groupRoleMap.getUsersOf(a));
                 });
                 users.removeAll(party.groupRoleMap.getUsersOf(party.getRole(StreamlineUser)));
-                List<String> names = new ArrayList<>();
+                ConcurrentSkipListSet<String> names = new ConcurrentSkipListSet<>();
                 users.forEach(a -> {
                     names.add(a.getName());
                 });
@@ -446,6 +447,6 @@ public class PartyCommand extends ModuleCommand {
             }
         }
 
-        return new ArrayList<>();
+        return new ConcurrentSkipListSet<>();
     }
 }

@@ -2,6 +2,8 @@ package tv.quaint.savable.guilds;
 
 import net.streamline.api.configs.StorageResource;
 import net.streamline.api.modules.ModuleUtils;
+import net.streamline.api.objects.StreamlineTitle;
+import net.streamline.api.savables.users.StreamlinePlayer;
 import net.streamline.api.savables.users.StreamlineUser;
 import net.streamline.api.utils.MathUtils;
 import tv.quaint.StreamlineGroups;
@@ -50,7 +52,25 @@ public class SavableGuild extends SavableGroup {
 
         this.level = amount;
 
-        ModuleUtils.fireEvent(new LevelChangeGuildEvent(this, oldL));
+        LevelChangeGuildEvent event = new LevelChangeGuildEvent(this, oldL);
+        ModuleUtils.fireEvent(event);
+
+        getAllUsers().forEach(streamlineUser -> {
+            if (StreamlineGroups.getConfigs().announceLevelChangeTitle()) {
+                if (streamlineUser instanceof StreamlinePlayer player) {
+                    StreamlineTitle title = new StreamlineTitle(StreamlineGroups.getMessages().levelTitleMain(), StreamlineGroups.getMessages().levelTitleSub());
+                    title.setFadeIn(StreamlineGroups.getMessages().levelTitleInTicks());
+                    title.setStay(StreamlineGroups.getMessages().levelTitleStayTicks());
+                    title.setFadeOut(StreamlineGroups.getMessages().levelTitleOutTicks());
+                    ModuleUtils.sendTitle(player, title);
+                }
+            }
+            if (StreamlineGroups.getConfigs().announceLevelChangeChat()) {
+                StreamlineGroups.getMessages().levelChat().forEach(s -> {
+                    ModuleUtils.sendMessage(streamlineUser, ModuleUtils.replaceAllPlayerBungee(streamlineUser, s));
+                });
+            }
+        });
     }
 
     public void addLevel(int amount) {

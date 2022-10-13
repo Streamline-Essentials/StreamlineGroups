@@ -5,11 +5,17 @@ import lombok.Setter;
 import net.streamline.api.SLAPI;
 import net.streamline.api.configs.given.MainMessagesHandler;
 import net.streamline.api.interfaces.IStreamline;
-import net.streamline.api.messages.ProxyMessageHelper;
+import net.streamline.api.messages.answered.ReturnableMessage;
+import net.streamline.api.messages.builders.ProxyParseMessageBuilder;
 import net.streamline.api.modules.ModuleUtils;
+import net.streamline.api.modules.StreamlineModule;
 import net.streamline.api.objects.SingleSet;
 import net.streamline.api.placeholder.RATExpansion;
+import net.streamline.api.savables.users.StreamlinePlayer;
 import net.streamline.api.savables.users.StreamlineUser;
+import net.streamline.api.scheduler.BaseRunnable;
+import net.streamline.api.scheduler.ModuleRunnable;
+import net.streamline.api.utils.UserUtils;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.GroupManager;
 import tv.quaint.savable.SavableGroupRole;
@@ -17,10 +23,14 @@ import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class GroupsExpansion extends RATExpansion {
+
     public GroupsExpansion() {
         super("groups", "Quaint", "0.0.1");
     }
@@ -84,7 +94,7 @@ public class GroupsExpansion extends RATExpansion {
                         return String.valueOf(role.getPriority());
                     }
                     if (params.equals("guild_role_flags")) {
-                        return ModuleUtils.getListAsFormattedString(role.getFlags());
+                        return ModuleUtils.getListAsFormattedString(role.getFlags().stream().toList());
                     }
                 }
                 if (params.equals("guild_total_size")) {
@@ -130,7 +140,7 @@ public class GroupsExpansion extends RATExpansion {
                         return String.valueOf(role.getPriority());
                     }
                     if (params.equals("party_role_flags")) {
-                        return ModuleUtils.getListAsFormattedString(role.getFlags());
+                        return ModuleUtils.getListAsFormattedString(role.getFlags().stream().toList());
                     }
                 }
                 if (params.equals("party_total_size")) {
@@ -156,8 +166,30 @@ public class GroupsExpansion extends RATExpansion {
                 }
             }
         } else {
-            return ProxyMessageHelper.parseOnProxy("%" + getIdentifier() + "_" + params + "%", streamlineUser);
+            return getProxyResponse(streamlineUser, params);
         }
         return null;
+    }
+
+    public String getProxyResponse(StreamlineUser streamlineUser, String params) {
+        Map.Entry<String, StreamlinePlayer> entry = UserUtils.getOnlinePlayers().firstEntry();
+        if (entry == null) return null;
+
+        StreamlinePlayer player = entry.getValue();
+
+        CompletableFuture<Boolean> futureBool = CompletableFuture.supplyAsync(() -> {
+            ReturnableMessage message = ProxyParseMessageBuilder.build(player, "%" + getIdentifier() + "_" + params + "%", streamlineUser);
+            message.registerEventCall((pm) -> {
+                String parsed = pm.getString("parsed");
+
+                StreamlineGroups.getInstance().logInfo("parsed = " + parsed);
+
+                cache(streamlineUser, params, parsed);
+            });
+            return true;
+        });
+
+        if (! futureBool.join()) return null;
+        return getCached(streamlineUser, params);
     }
 }

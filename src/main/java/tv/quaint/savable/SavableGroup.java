@@ -11,6 +11,8 @@ import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.flags.GroupFlag;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public abstract class SavableGroup extends SavableResource {
     @Override
@@ -19,7 +21,7 @@ public abstract class SavableGroup extends SavableResource {
     }
 
     public StreamlineUser owner;
-    public List<InviteTicker<? extends SavableGroup>> invites = new ArrayList<>();
+    public ConcurrentSkipListSet<InviteTicker<? extends SavableGroup>> invites = new ConcurrentSkipListSet<>();
     public boolean isMuted;
     public boolean isPublic;
     public int maxSize;
@@ -38,9 +40,6 @@ public abstract class SavableGroup extends SavableResource {
         GroupedUser u = GroupManager.getOrGetGroupedUser(uuid, false);
         u.associateWith(this.getClass(), getUuid());
         GroupManager.loadGroup(this);
-
-        StreamlineGroups.getInstance().logInfo("Done creating object!");
-        StreamlineGroups.getInstance().logInfo("Exists: " + getStorageResource().exists());
     }
 
     @Override
@@ -54,8 +53,8 @@ public abstract class SavableGroup extends SavableResource {
         populateMoreDefaults();
     }
 
-    public List<StreamlineUser> parseUserListFromUUIDs(List<String> uuids) {
-        List<StreamlineUser> users = new ArrayList<>();
+    public ConcurrentSkipListSet<StreamlineUser> parseUserListFromUUIDs(ConcurrentSkipListSet<String> uuids) {
+        ConcurrentSkipListSet<StreamlineUser> users = new ConcurrentSkipListSet<>();
 
         for (String uuid : uuids) {
             StreamlineUser u = ModuleUtils.getOrGetUser(uuid);
@@ -68,8 +67,8 @@ public abstract class SavableGroup extends SavableResource {
         return users;
     }
 
-    public List<String> parseUUIDListFromUsers(List<StreamlineUser> users) {
-        List<String> uuids = new ArrayList<>();
+    public ConcurrentSkipListSet<String> parseUUIDListFromUsers(ConcurrentSkipListSet<StreamlineUser> users) {
+        ConcurrentSkipListSet<String> uuids = new ConcurrentSkipListSet<>();
 
         for (StreamlineUser user : users) {
             if (uuids.contains(user.getUuid())) continue;
@@ -142,7 +141,7 @@ public abstract class SavableGroup extends SavableResource {
         return ModuleUtils.getOrGetUser(uuid);
     }
 
-    public List<StreamlineUser> getAllUsers() {
+    public ConcurrentSkipListSet<StreamlineUser> getAllUsers() {
         return groupRoleMap.getAllUsers();
     }
 
@@ -187,8 +186,8 @@ public abstract class SavableGroup extends SavableResource {
         groupRoleMap.removeUserAll(user);
     }
 
-    public List<StreamlineUser> getInvitesAsUsers() {
-        List<StreamlineUser> users = new ArrayList<>();
+    public ConcurrentSkipListSet<StreamlineUser> getInvitesAsUsers() {
+        ConcurrentSkipListSet<StreamlineUser> users = new ConcurrentSkipListSet<>();
 
         invites.forEach(a -> users.add(a.getInvited()));
 

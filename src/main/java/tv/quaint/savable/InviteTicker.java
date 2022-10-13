@@ -4,11 +4,12 @@ import lombok.Getter;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.savables.users.StreamlineUser;
 import net.streamline.api.scheduler.ModuleRunnable;
+import org.jetbrains.annotations.NotNull;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
 
-public class InviteTicker<T extends SavableGroup> extends ModuleRunnable {
+public class InviteTicker<T extends SavableGroup> extends ModuleRunnable implements Comparable<InviteTicker<?>> {
     @Getter
     private final T group;
     @Getter
@@ -70,5 +71,10 @@ public class InviteTicker<T extends SavableGroup> extends ModuleRunnable {
         ModuleUtils.fireEvent(new InviteTimeoutEvent<>(group, invited, inviter));
 
         this.cancel();
+    }
+
+    @Override
+    public int compareTo(@NotNull InviteTicker<?> o) {
+        return Integer.compare(index, o.index);
     }
 }

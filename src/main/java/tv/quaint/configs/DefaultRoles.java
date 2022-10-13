@@ -9,6 +9,7 @@ import tv.quaint.savable.SavableGroup;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class DefaultRoles extends ModularizedConfig {
     public DefaultRoles() {
@@ -23,7 +24,7 @@ public class DefaultRoles extends ModularizedConfig {
             int priority = resource.getInt(c + "." + key + ".priority");
             String name = resource.getString(c + "." + key + ".name");
             int max = resource.getInt(c + "." + key + ".max");
-            List<String> flags = resource.getStringList(c + "." + key + ".flags");
+            ConcurrentSkipListSet<String> flags = new ConcurrentSkipListSet<>(resource.getStringList(c + "." + key + ".flags"));
             r.add(new ConfiguredDefaultRole(key, priority, name, max, flags));
         }
 

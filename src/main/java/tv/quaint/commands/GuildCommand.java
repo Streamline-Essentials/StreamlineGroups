@@ -15,6 +15,7 @@ import tv.quaint.savable.guilds.SavableGuild;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class GuildCommand extends ModuleCommand {
     @Getter
@@ -32,7 +33,7 @@ public class GuildCommand extends ModuleCommand {
 
     @Override
     public void run(StreamlineUser sender, String[] strings) {
-        if (strings.length < 1) {
+        if (strings[0].equals("")) {
             ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
             return;
         }
@@ -412,9 +413,9 @@ public class GuildCommand extends ModuleCommand {
     }
 
     @Override
-    public List<String> doTabComplete(StreamlineUser StreamlineUser, String[] strings) {
+    public ConcurrentSkipListSet<String> doTabComplete(StreamlineUser StreamlineUser, String[] strings) {
         if (strings.length <= 1) {
-            return List.of(
+            return new ConcurrentSkipListSet<>(List.of(
                     "create",
                     "create-as",
                     "rename",
@@ -429,14 +430,14 @@ public class GuildCommand extends ModuleCommand {
                     "leave",
                     "chat",
                     "chat-as"
-            );
+            ));
         }
         if (strings.length == 2) {
             if (strings[0].equalsIgnoreCase("create") || strings[0].equalsIgnoreCase("create-as")) {
-                return List.of("<name>");
+                return new ConcurrentSkipListSet<>(List.of("<name>"));
             }
             if (strings[0].equalsIgnoreCase("rename") || strings[0].equalsIgnoreCase("rename-as")) {
-                return List.of("<name>");
+                return new ConcurrentSkipListSet<>(List.of("<name>"));
             }
             if (strings[0].equalsIgnoreCase("list") || strings[0].equalsIgnoreCase("disband")) {
                 if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
@@ -447,13 +448,13 @@ public class GuildCommand extends ModuleCommand {
                 GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUuid());
                 SavableGuild guild = user.getGroup(SavableGuild.class);
                 if (guild == null) return ModuleUtils.getOnlinePlayerNames();
-                if (! guild.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ArrayList<>();
-                List<StreamlineUser> users = guild.getAllUsers();
+                if (! guild.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ConcurrentSkipListSet<>();
+                ConcurrentSkipListSet<StreamlineUser> users = guild.getAllUsers();
                 guild.groupRoleMap.rolesAbove(guild.getRole(StreamlineUser)).forEach(a -> {
                     users.removeAll(guild.groupRoleMap.getUsersOf(a));
                 });
                 users.removeAll(guild.groupRoleMap.getUsersOf(guild.getRole(StreamlineUser)));
-                List<String> names = new ArrayList<>();
+                ConcurrentSkipListSet<String> names = new ConcurrentSkipListSet<>();
                 users.forEach(a -> {
                     names.add(a.getName());
                 });
@@ -463,13 +464,13 @@ public class GuildCommand extends ModuleCommand {
                 GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUuid());
                 SavableGuild guild = user.getGroup(SavableGuild.class);
                 if (guild == null) return ModuleUtils.getOnlinePlayerNames();
-                if (! guild.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ArrayList<>();
-                List<StreamlineUser> users = guild.getAllUsers();
+                if (! guild.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ConcurrentSkipListSet<>();
+                ConcurrentSkipListSet<StreamlineUser> users = guild.getAllUsers();
                 guild.groupRoleMap.rolesAbove(guild.getRole(StreamlineUser)).forEach(a -> {
                     users.removeAll(guild.groupRoleMap.getUsersOf(a));
                 });
                 users.removeAll(guild.groupRoleMap.getUsersOf(guild.getRole(StreamlineUser)));
-                List<String> names = new ArrayList<>();
+                ConcurrentSkipListSet<String> names = new ConcurrentSkipListSet<>();
                 users.forEach(a -> {
                     names.add(a.getName());
                 });
@@ -488,6 +489,6 @@ public class GuildCommand extends ModuleCommand {
             }
         }
 
-        return new ArrayList<>();
+        return new ConcurrentSkipListSet<>();
     }
 }
