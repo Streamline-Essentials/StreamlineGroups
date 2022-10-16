@@ -42,7 +42,7 @@ public class GroupManager {
     }
 
     @Getter @Setter
-    private static List<GroupedUser> loadedGroupedUsers = new ArrayList<>();
+    private static ConcurrentSkipListSet<GroupedUser> loadedGroupedUsers = new ConcurrentSkipListSet<>();
 
     public static void loadGroupedUser(GroupedUser user) {
         loadedGroupedUsers.add(user);

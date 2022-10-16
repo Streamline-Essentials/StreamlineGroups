@@ -75,6 +75,6 @@ public class InviteTicker<T extends SavableGroup> extends ModuleRunnable impleme
 
     @Override
     public int compareTo(@NotNull InviteTicker<?> o) {
-        return Integer.compare(index, o.index);
+        return Integer.compare(getIndex(), o.getIndex());
     }
 }

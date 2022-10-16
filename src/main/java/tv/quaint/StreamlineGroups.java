@@ -25,8 +25,10 @@ import tv.quaint.timers.GuildPayout;
 import tv.quaint.timers.UserSaver;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class StreamlineGroups extends SimpleModule {
     @Getter
@@ -115,9 +117,17 @@ public class StreamlineGroups extends SimpleModule {
     @Override
     public void onDisable() {
         GroupManager.getLoadedGroups().forEach((clazz, savableGroups) -> {
-            savableGroups.forEach(GroupManager::removeGroupOf);
+            savableGroups.forEach(savableGroup -> {
+                savableGroup.saveAll();
+                savableGroup.getStorageResource().push();
+            });
+            GroupManager.getLoadedGroups().put(clazz, new ConcurrentSkipListSet<>());
         });
-        GroupManager.getLoadedGroupedUsers().forEach(GroupedUser::saveAll);
+        GroupManager.getLoadedGroupedUsers().forEach(groupedUser -> {
+            groupedUser.saveAll();
+            groupedUser.getStorageResource().push();
+        });
+        GroupManager.setLoadedGroupedUsers(new ConcurrentSkipListSet<>());
         getGroupsExpansion().unregister();
     }
 }

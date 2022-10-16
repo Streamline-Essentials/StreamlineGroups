@@ -13,7 +13,7 @@ import tv.quaint.savable.SavableGroup;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
 
-public class MainListener extends StreamlineListener {
+public class MainListener implements StreamlineListener {
     @EventProcessor
     public void updateLogin(LoginCompletedEvent event) {
         GroupedUser user = GroupManager.getOrGetGroupedUser(event.getResource().getUuid());
