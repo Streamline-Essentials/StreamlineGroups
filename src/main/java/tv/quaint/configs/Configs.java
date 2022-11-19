@@ -1,9 +1,10 @@
 package tv.quaint.configs;
 
-import net.streamline.api.configs.DatabaseConfig;
 import net.streamline.api.configs.ModularizedConfig;
-import net.streamline.api.configs.StorageUtils;
 import tv.quaint.StreamlineGroups;
+import tv.quaint.storage.StorageUtils;
+import tv.quaint.storage.resources.databases.configurations.DatabaseConfig;
+import tv.quaint.thebase.lib.leonhard.storage.sections.FlatFileSection;
 
 import java.util.HashMap;
 
@@ -15,9 +16,6 @@ public class Configs extends ModularizedConfig {
 
     public void init() {
         savingUse();
-        savingUri();
-        savingDatabase();
-        savingPrefix();
 
         getOrSetDefault("groups.base.maximum", new HashMap<>());
         getOrSetDefault("groups.party.maximum", new HashMap<>());
@@ -31,154 +29,154 @@ public class Configs extends ModularizedConfig {
         guildPayoutExperienceEvery();
         guildStartingLevel();
         guildLevelingEquation();
-
-        savingUseUsers();
-        savingUriUsers();
-        savingDatabaseUsers();
-        savingPrefixUsers();
     }
 
-    public StorageUtils.StorageType savingUse() {
+    public StorageUtils.SupportedStorageType savingUse() {
         reloadResource();
 
-        return resource.getEnum("groups.saving.use", StorageUtils.StorageType.class);
-    }
-
-    public String savingUri() {
-        reloadResource();
-
-        return resource.getString("groups.saving.databases.connection-uri");
-    }
-
-    public String savingDatabase() {
-        reloadResource();
-
-        return resource.getString("groups.saving.databases.database");
-    }
-
-    public String savingPrefix() {
-        reloadResource();
-
-        return resource.getString("groups.saving.databases.prefix");
+        return getResource().getEnum("groups.saving.use", StorageUtils.SupportedStorageType.class);
     }
 
     public DatabaseConfig getConfiguredDatabase() {
-        StorageUtils.DatabaseType databaseType = null;
-        if (savingUse().equals(StorageUtils.StorageType.MONGO)) databaseType = StorageUtils.DatabaseType.MONGO;
-        if (savingUse().equals(StorageUtils.StorageType.MYSQL)) databaseType = StorageUtils.DatabaseType.MYSQL;
-        if (databaseType == null) return null;
+        FlatFileSection section = getResource().getSection("groups.saving.database");
 
-        return new DatabaseConfig(savingUri(), savingDatabase(), savingPrefix(), databaseType);
+        StorageUtils.SupportedDatabaseType type = StorageUtils.SupportedDatabaseType.valueOf(section.getOrSetDefault("type", StorageUtils.SupportedDatabaseType.SQLITE.toString()));
+        String link;
+        switch (type) {
+            case MONGO:
+                link = section.getOrDefault("link", "mongodb://{{user}}:{{pass}}@{{host}}:{{port}}/{{database}}");
+                break;
+            case MYSQL:
+                link = section.getOrDefault("link", "jdbc:mysql://{{host}}:{{port}}/{{database}}{{options}}");
+                break;
+            case SQLITE:
+                link = section.getOrDefault("link", "jdbc:sqlite:{{database}}.db");
+                break;
+            default:
+                link = section.getOrSetDefault("link", "jdbc:sqlite:{{database}}.db");
+                break;
+        }
+        String host = section.getOrSetDefault("host", "localhost");
+        int port = section.getOrSetDefault("port", 3306);
+        String username = section.getOrSetDefault("username", "user");
+        String password = section.getOrSetDefault("password", "pass1234");
+        String database = section.getOrSetDefault("database", "streamline");
+        String tablePrefix = section.getOrSetDefault("table-prefix", "sl_");
+        String options = section.getOrSetDefault("options", "?useSSL=false&serverTimezone=UTC");
+
+        return new DatabaseConfig(type, link, host, port, username, password, database, tablePrefix, options);
     }
 
     public int baseMax(String group) {
         reloadResource();
 
-        if (! resource.singleLayerKeySet("groups.base.maximum").contains(group)) group = "default";
-        if (! resource.singleLayerKeySet("groups.base.maximum").contains(group)) return 8;
+        if (! getResource().singleLayerKeySet("groups.base.maximum").contains(group)) group = "default";
+        if (! getResource().singleLayerKeySet("groups.base.maximum").contains(group)) return 8;
 
-        return resource.getInt("groups.base.maximum." + group);
+        return getResource().getInt("groups.base.maximum." + group);
     }
 
     public long inviteTimeout() {
         reloadResource();
 
-        return resource.getLong("groups.base.invites.timeout");
+        return getResource().getLong("groups.base.invites.timeout");
     }
 
     public int partyMax(String group) {
         reloadResource();
 
-        if (! resource.singleLayerKeySet("groups.party.maximum").contains(group)) group = "default";
-        if (! resource.singleLayerKeySet("groups.party.maximum").contains(group)) return 8;
-        if (resource.getInt("groups.party.maximum." + group) == -1) baseMax(group);
+        if (! getResource().singleLayerKeySet("groups.party.maximum").contains(group)) group = "default";
+        if (! getResource().singleLayerKeySet("groups.party.maximum").contains(group)) return 8;
+        if (getResource().getInt("groups.party.maximum." + group) == -1) baseMax(group);
 
-        return resource.getInt("groups.party.maximum." + group);
+        return getResource().getInt("groups.party.maximum." + group);
     }
 
     public int guildMax(String group) {
         reloadResource();
 
-        if (! resource.singleLayerKeySet("groups.guild.maximum").contains(group)) group = "default";
-        if (! resource.singleLayerKeySet("groups.guild.maximum").contains(group)) return 8;
-        if (resource.getInt("groups.guild.maximum." + group) == -1) baseMax(group);
+        if (! getResource().singleLayerKeySet("groups.guild.maximum").contains(group)) group = "default";
+        if (! getResource().singleLayerKeySet("groups.guild.maximum").contains(group)) return 8;
+        if (getResource().getInt("groups.guild.maximum." + group) == -1) baseMax(group);
 
-        return resource.getInt("groups.guild.maximum." + group);
+        return getResource().getInt("groups.guild.maximum." + group);
     }
 
     public boolean announceLevelChangeTitle() {
         reloadResource();
 
-        return resource.getBoolean("groups.guild.experience.announce.level-change.title");
+        return getResource().getBoolean("groups.guild.experience.announce.level-change.title");
     }
 
     public boolean announceLevelChangeChat() {
         reloadResource();
 
-        return resource.getBoolean("groups.guild.experience.announce.level-change.chat");
+        return getResource().getBoolean("groups.guild.experience.announce.level-change.chat");
     }
 
     public double guildPayoutExperienceAmount() {
         reloadResource();
 
-        return resource.getOrSetDefault("groups.guild.experience.payout.amount", 1.0D);
+        return getResource().getOrSetDefault("groups.guild.experience.payout.amount", 1.0D);
     }
 
     public int guildPayoutExperienceEvery() {
         reloadResource();
 
-        return resource.getOrSetDefault("groups.guild.experience.payout.every", 400);
+        return getResource().getOrSetDefault("groups.guild.experience.payout.every", 400);
     }
 
     public int guildStartingLevel() {
         reloadResource();
 
-        return resource.getOrSetDefault("groups.guild.experience.starting.level", 1);
+        return getResource().getOrSetDefault("groups.guild.experience.starting.level", 1);
     }
 
     public double guildStartingExperienceAmount() {
         reloadResource();
 
-        return resource.getOrSetDefault("groups.guild.experience.starting.xp", 0.0D);
+        return getResource().getOrSetDefault("groups.guild.experience.starting.xp", 0.0D);
     }
 
     public String guildLevelingEquation() {
         reloadResource();
 
-        return resource.getString("groups.guild.experience.equation");
+        return getResource().getString("groups.guild.experience.equation");
     }
 
-
-    public StorageUtils.StorageType savingUseUsers() {
+    public StorageUtils.SupportedStorageType getSavingUseUsers() {
         reloadResource();
 
-        return resource.getEnum("groups.saving.use", StorageUtils.StorageType.class);
-    }
-
-    public String savingUriUsers() {
-        reloadResource();
-
-        return resource.getString("groups.saving.databases.connection-uri");
-    }
-
-    public String savingDatabaseUsers() {
-        reloadResource();
-
-        return resource.getString("groups.saving.databases.database");
-    }
-
-    public String savingPrefixUsers() {
-        reloadResource();
-
-        return resource.getString("groups.saving.databases.prefix");
+        return getResource().getEnum("groups.saving.use", StorageUtils.SupportedStorageType.class);
     }
 
     public DatabaseConfig getConfiguredDatabaseUsers() {
-        StorageUtils.DatabaseType databaseType = null;
-        if (savingUseUsers().equals(StorageUtils.StorageType.MONGO)) databaseType = StorageUtils.DatabaseType.MONGO;
-        if (savingUseUsers().equals(StorageUtils.StorageType.MYSQL)) databaseType = StorageUtils.DatabaseType.MYSQL;
-        if (databaseType == null) return null;
+        FlatFileSection section = getResource().getSection("groups.saving.database");
 
-        return new DatabaseConfig(savingUriUsers(), savingDatabaseUsers(), savingPrefixUsers(), databaseType);
+        StorageUtils.SupportedDatabaseType type = StorageUtils.SupportedDatabaseType.valueOf(section.getOrSetDefault("type", StorageUtils.SupportedDatabaseType.SQLITE.toString()));
+        String link;
+        switch (type) {
+            case MONGO:
+                link = section.getOrDefault("link", "mongodb://{{user}}:{{pass}}@{{host}}:{{port}}/{{database}}");
+                break;
+            case MYSQL:
+                link = section.getOrDefault("link", "jdbc:mysql://{{host}}:{{port}}/{{database}}{{options}}");
+                break;
+            case SQLITE:
+                link = section.getOrDefault("link", "jdbc:sqlite:{{database}}.db");
+                break;
+            default:
+                link = section.getOrSetDefault("link", "jdbc:sqlite:{{database}}.db");
+                break;
+        }
+        String host = section.getOrSetDefault("host", "localhost");
+        int port = section.getOrSetDefault("port", 3306);
+        String username = section.getOrSetDefault("username", "user");
+        String password = section.getOrSetDefault("password", "pass1234");
+        String database = section.getOrSetDefault("database", "streamline");
+        String tablePrefix = section.getOrSetDefault("table-prefix", "sl_");
+        String options = section.getOrSetDefault("options", "?useSSL=false&serverTimezone=UTC");
+
+        return new DatabaseConfig(type, link, host, port, username, password, database, tablePrefix, options);
     }
 }

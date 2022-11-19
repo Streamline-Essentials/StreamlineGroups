@@ -1,13 +1,10 @@
 package tv.quaint.savable;
 
-import de.leonhard.storage.internal.FileData;
-import de.leonhard.storage.internal.settings.DataType;
 import lombok.Getter;
-import net.streamline.api.configs.StorageResource;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.savables.SavableResource;
 import net.streamline.api.savables.users.StreamlineUser;
-import tv.quaint.StreamlineGroups;
+import tv.quaint.storage.resources.StorageResource;
 
 import java.util.concurrent.ConcurrentHashMap;
 

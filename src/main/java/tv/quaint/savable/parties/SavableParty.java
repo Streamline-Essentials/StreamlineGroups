@@ -1,6 +1,5 @@
 package tv.quaint.savable.parties;
 
-import net.streamline.api.savables.SavableResource;
 import net.streamline.api.savables.users.StreamlineUser;
 import tv.quaint.savable.SavableGroup;
 

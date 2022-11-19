@@ -1,8 +1,6 @@
 package tv.quaint.configs;
 
-import net.streamline.api.configs.DatabaseConfig;
 import net.streamline.api.configs.ModularizedConfig;
-import net.streamline.api.configs.StorageUtils;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.configs.roles.ConfiguredDefaultRole;
 import tv.quaint.savable.SavableGroup;
@@ -16,15 +14,20 @@ public class DefaultRoles extends ModularizedConfig {
         super(StreamlineGroups.getInstance(), "default-roles.yml", true);
     }
 
+    @Override
+    public void init() {
+
+    }
+
     public List<ConfiguredDefaultRole> getDefaultRolesOf(Class<? extends SavableGroup> clazz) {
         List<ConfiguredDefaultRole> r = new ArrayList<>();
 
         String c = clazz.getSimpleName();
-        for (String key : resource.singleLayerKeySet(c)) {
-            int priority = resource.getInt(c + "." + key + ".priority");
-            String name = resource.getString(c + "." + key + ".name");
-            int max = resource.getInt(c + "." + key + ".max");
-            ConcurrentSkipListSet<String> flags = new ConcurrentSkipListSet<>(resource.getStringList(c + "." + key + ".flags"));
+        for (String key : getResource().singleLayerKeySet(c)) {
+            int priority = getResource().getInt(c + "." + key + ".priority");
+            String name = getResource().getString(c + "." + key + ".name");
+            int max = getResource().getInt(c + "." + key + ".max");
+            ConcurrentSkipListSet<String> flags = new ConcurrentSkipListSet<>(getResource().getStringList(c + "." + key + ".flags"));
             r.add(new ConfiguredDefaultRole(key, priority, name, max, flags));
         }
 

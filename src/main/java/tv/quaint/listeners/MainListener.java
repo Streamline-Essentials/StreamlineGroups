@@ -1,26 +1,23 @@
 package tv.quaint.listeners;
 
-import net.streamline.api.events.EventProcessor;
-import net.streamline.api.events.StreamlineEvent;
-import net.streamline.api.events.StreamlineListener;
 import net.streamline.api.events.server.LoginCompletedEvent;
 import net.streamline.api.events.server.LogoutEvent;
 import net.streamline.api.savables.users.StreamlineUser;
-import tv.quaint.StreamlineGroups;
+import tv.quaint.events.BaseEventListener;
+import tv.quaint.events.processing.BaseProcessor;
 import tv.quaint.savable.GroupManager;
 import tv.quaint.savable.GroupedUser;
-import tv.quaint.savable.SavableGroup;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
 
-public class MainListener implements StreamlineListener {
-    @EventProcessor
+public class MainListener implements BaseEventListener {
+    @BaseProcessor
     public void updateLogin(LoginCompletedEvent event) {
         GroupedUser user = GroupManager.getOrGetGroupedUser(event.getResource().getUuid());
         GroupManager.loadGroupedUser(user);
     }
 
-    @EventProcessor
+    @BaseProcessor
     public void updateLogout(LogoutEvent event) {
         GroupedUser user = GroupManager.getOrGetGroupedUser(event.getResource().getUuid());
         if (user.hasGroup(SavableParty.class)) {

@@ -1,11 +1,7 @@
 package tv.quaint.savable;
 
-import de.leonhard.storage.Config;
-import de.leonhard.storage.Json;
-import de.leonhard.storage.Toml;
 import lombok.Getter;
 import lombok.Setter;
-import net.streamline.api.configs.*;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.savables.SavableResource;
 import net.streamline.api.savables.users.StreamlineUser;
@@ -17,6 +13,11 @@ import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.CreatePartyEvent;
 import tv.quaint.savable.parties.PartyChatEvent;
 import tv.quaint.savable.parties.SavableParty;
+import tv.quaint.storage.resources.StorageResource;
+import tv.quaint.storage.resources.flat.FlatFileResource;
+import tv.quaint.thebase.lib.leonhard.storage.Config;
+import tv.quaint.thebase.lib.leonhard.storage.Json;
+import tv.quaint.thebase.lib.leonhard.storage.Toml;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -148,11 +149,8 @@ public class GroupManager {
             case TOML -> {
                 return new FlatFileResource<>(Toml.class, uuid + ".toml", groupFolder(clazz), false);
             }
-            case MONGO -> {
-                return new MongoResource(StreamlineGroups.getConfigs().getConfiguredDatabase(), clazz.getSimpleName(), "uuid", uuid);
-            }
-            case MYSQL -> {
-                return new MySQLResource(StreamlineGroups.getConfigs().getConfiguredDatabase(), new SQLCollection(clazz.getSimpleName(), "uuid", uuid));
+            case MONGO, SQLITE, MYSQL -> {
+                return null;
             }
         }
 
@@ -170,11 +168,8 @@ public class GroupManager {
             case TOML -> {
                 return new FlatFileResource<>(Toml.class, uuid + ".toml", StreamlineGroups.getUsersFolder(), false);
             }
-            case MONGO -> {
-                return new MongoResource(StreamlineGroups.getConfigs().getConfiguredDatabaseUsers(), clazz.getSimpleName(), "uuid", uuid);
-            }
-            case MYSQL -> {
-                return new MySQLResource(StreamlineGroups.getConfigs().getConfiguredDatabaseUsers(), new SQLCollection(clazz.getSimpleName(), "uuid", uuid));
+            case MONGO, SQLITE, MYSQL -> {
+                return null;
             }
         }
 

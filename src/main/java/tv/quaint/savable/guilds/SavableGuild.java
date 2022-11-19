@@ -1,6 +1,5 @@
 package tv.quaint.savable.guilds;
 
-import net.streamline.api.configs.StorageResource;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.objects.StreamlineTitle;
 import net.streamline.api.savables.users.StreamlinePlayer;
