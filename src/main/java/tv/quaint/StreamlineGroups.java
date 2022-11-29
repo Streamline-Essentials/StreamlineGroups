@@ -1,11 +1,8 @@
 package tv.quaint;
 
 import lombok.Getter;
-import net.streamline.api.command.ModuleCommand;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.modules.SimpleModule;
-import net.streamline.api.modules.dependencies.Dependency;
-import net.streamline.api.placeholder.RATExpansion;
 import net.streamline.api.utils.UserUtils;
 import org.pf4j.PluginWrapper;
 import tv.quaint.commands.GuildCommand;
@@ -17,7 +14,6 @@ import tv.quaint.listeners.MainListener;
 import tv.quaint.placeholders.GroupsExpansion;
 import tv.quaint.savable.GroupManager;
 import tv.quaint.savable.GroupedUser;
-import tv.quaint.savable.SavableGroup;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
 import tv.quaint.timers.GroupSaver;
@@ -25,8 +21,6 @@ import tv.quaint.timers.GuildPayout;
 import tv.quaint.timers.UserSaver;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -106,7 +100,7 @@ public class StreamlineGroups extends SimpleModule {
         mainListener = new MainListener();
         ModuleUtils.listen(mainListener, this);
 
-        getGroupsExpansion().register();
+        getGroupsExpansion().init();
 
         UserUtils.getLoadedUsersSet().forEach(a -> {
             GroupedUser user = GroupManager.getOrGetGroupedUser(a.getUuid());
@@ -128,6 +122,6 @@ public class StreamlineGroups extends SimpleModule {
             groupedUser.getStorageResource().push();
         });
         GroupManager.setLoadedGroupedUsers(new ConcurrentSkipListSet<>());
-        getGroupsExpansion().unregister();
+        getGroupsExpansion().stop();
     }
 }
