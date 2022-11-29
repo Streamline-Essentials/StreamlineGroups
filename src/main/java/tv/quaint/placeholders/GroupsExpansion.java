@@ -45,11 +45,8 @@ public class GroupsExpansion extends RATExpansion {
             if (guild == null) {
                 return StreamlineGroups.getMessages().placeholdersGuildNotFound();
             }
-            AtomicString string = new AtomicString(s.string());
-            s.handledString().isolateIn(s.string()).forEach(str -> {
-                string.set(startsWithGuild(str, guild, u));
-            });
-            return string.get() == null ? s.string() : string.get();
+            String string = startsWithGuild(s.get(), guild, u);
+            return string == null ? s.string() : string;
         }).register();
 
         new IdentifiedUserReplaceable(this, MatcherUtils.makeLiteral("party_") + "(.*?)", 1, (s, u) -> {
@@ -57,11 +54,8 @@ public class GroupsExpansion extends RATExpansion {
             if (party == null) {
                 return StreamlineGroups.getMessages().placeholdersPartyNotFound();
             }
-            AtomicString string = new AtomicString(s.string());
-            s.handledString().isolateIn(s.string()).forEach(str -> {
-                string.set(startsWithParty(str, party, u));
-            });
-            return string.get() == null ? s.string() : string.get();
+            String string = startsWithParty(s.get(), party, u);
+            return string == null ? s.string() : string;
         }).register();
     }
 
