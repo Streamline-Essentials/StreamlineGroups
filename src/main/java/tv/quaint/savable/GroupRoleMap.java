@@ -12,6 +12,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GroupRoleMap {
     public SavableGroup group;
@@ -141,11 +142,21 @@ public class GroupRoleMap {
     }
 
     public boolean roleHasUser(SavableGroupRole role, StreamlineUser user) {
-        return getUsersOf(role).contains(user);
+        AtomicBoolean r = new AtomicBoolean(false);
+
+        getUsersOf(role).forEach(a -> {
+            if (a.getUuid().equals(user.getUuid())) r.set(true);
+        });
+
+        return r.get();
     }
 
     public void removeUserAll(StreamlineUser user) {
-        roles.forEach((role, StreamlineUsers) -> StreamlineUsers.remove(user));
+        removeUserAll(user.getUuid());
+    }
+
+    public void removeUserAll(String uuid) {
+        roles.forEach((role, users) -> users.removeIf(a -> a.getUuid().equals(uuid)));
     }
 
     public ConcurrentSkipListSet<SavableGroupRole> getRoles() {

@@ -41,7 +41,7 @@ public class GroupsExpansion extends RATExpansion {
         new IdentifiedReplaceable(this, "loaded_grouped_users", (s) -> String.valueOf(GroupManager.getLoadedGroupedUsers().size())).register();
 
         new IdentifiedUserReplaceable(this, MatcherUtils.makeLiteral("guild_") + "(.*?)", 1, (s, u) -> {
-            SavableGuild guild = GroupManager.getGroupOfUser(SavableGuild.class, u);
+            SavableGuild guild = GroupManager.getGroupOfUser(SavableGuild.class, u.getUuid());
             if (guild == null) {
                 return StreamlineGroups.getMessages().placeholdersGuildNotFound();
             }
@@ -50,7 +50,7 @@ public class GroupsExpansion extends RATExpansion {
         }).register();
 
         new IdentifiedUserReplaceable(this, MatcherUtils.makeLiteral("party_") + "(.*?)", 1, (s, u) -> {
-            SavableParty party = GroupManager.getGroupOfUser(SavableParty.class, u);
+            SavableParty party = GroupManager.getGroupOfUser(SavableParty.class, u.getUuid());
             if (party == null) {
                 return StreamlineGroups.getMessages().placeholdersPartyNotFound();
             }
