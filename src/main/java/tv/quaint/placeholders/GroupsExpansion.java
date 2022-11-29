@@ -52,7 +52,7 @@ public class GroupsExpansion extends RATExpansion {
             return string.get() == null ? s.string() : string.get();
         }).register();
 
-        new IdentifiedUserReplaceable(this, MatcherUtils.makeLiteral("guild_") + "(.*?)", 1, (s, u) -> {
+        new IdentifiedUserReplaceable(this, MatcherUtils.makeLiteral("party_") + "(.*?)", 1, (s, u) -> {
             SavableParty party = GroupManager.getGroupOfUser(SavableParty.class, u);
             if (party == null) {
                 return StreamlineGroups.getMessages().placeholdersPartyNotFound();
