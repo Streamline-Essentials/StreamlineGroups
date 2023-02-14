@@ -9,8 +9,26 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-public record SavableGroupRole(@Getter @Setter String identifier, @Getter @Setter int priority, @Getter @Setter String name,
-                               @Getter @Setter int max, @Getter @Setter ConcurrentSkipListSet<String> flags) implements Comparable<SavableGroupRole> {
+public class SavableGroupRole implements Comparable<SavableGroupRole> {
+    @Getter @Setter
+    private String identifier;
+    @Getter @Setter
+    private int priority;
+    @Getter @Setter
+    private String name;
+    @Getter @Setter
+    private int max;
+    @Getter @Setter
+    private ConcurrentSkipListSet<String> flags;
+
+    public SavableGroupRole(String identifier, int priority, String name, int max, ConcurrentSkipListSet<String> flags) {
+        setIdentifier(identifier);
+        setPriority(priority);
+        setName(name);
+        setMax(max);
+        setFlags(flags);
+    }
+
     public void addFlag(GroupFlag flag) {
         getFlags().add(flag.toString().toLowerCase(Locale.ROOT));
     }
@@ -25,6 +43,6 @@ public record SavableGroupRole(@Getter @Setter String identifier, @Getter @Sette
 
     @Override
     public int compareTo(@NotNull SavableGroupRole o) {
-        return Integer.compare(priority(), o.priority());
+        return Integer.compare(getPriority(), o.getPriority());
     }
 }

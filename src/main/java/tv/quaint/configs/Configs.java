@@ -15,6 +15,13 @@ public class Configs extends ModularizedConfig {
     }
 
     public void init() {
+        if (getResource().contains("groups.saving.databases")) {
+            getResource().remove("groups.saving.databases");
+        }
+        if (getResource().contains("grouped-users.saving.databases")) {
+            getResource().remove("grouped-users.saving.databases");
+        }
+
         savingUse();
 
         getOrSetDefault("groups.base.maximum", new HashMap<>());
@@ -35,36 +42,6 @@ public class Configs extends ModularizedConfig {
         reloadResource();
 
         return getResource().getEnum("groups.saving.use", StorageUtils.SupportedStorageType.class);
-    }
-
-    public DatabaseConfig getConfiguredDatabase() {
-        FlatFileSection section = getResource().getSection("groups.saving.database");
-
-        StorageUtils.SupportedDatabaseType type = StorageUtils.SupportedDatabaseType.valueOf(section.getOrSetDefault("type", StorageUtils.SupportedDatabaseType.SQLITE.toString()));
-        String link;
-        switch (type) {
-            case MONGO:
-                link = section.getOrDefault("link", "mongodb://{{user}}:{{pass}}@{{host}}:{{port}}/{{database}}");
-                break;
-            case MYSQL:
-                link = section.getOrDefault("link", "jdbc:mysql://{{host}}:{{port}}/{{database}}{{options}}");
-                break;
-            case SQLITE:
-                link = section.getOrDefault("link", "jdbc:sqlite:{{database}}.db");
-                break;
-            default:
-                link = section.getOrSetDefault("link", "jdbc:sqlite:{{database}}.db");
-                break;
-        }
-        String host = section.getOrSetDefault("host", "localhost");
-        int port = section.getOrSetDefault("port", 3306);
-        String username = section.getOrSetDefault("username", "user");
-        String password = section.getOrSetDefault("password", "pass1234");
-        String database = section.getOrSetDefault("database", "streamline");
-        String tablePrefix = section.getOrSetDefault("table-prefix", "sl_");
-        String options = section.getOrSetDefault("options", "?useSSL=false&serverTimezone=UTC");
-
-        return new DatabaseConfig(type, link, host, port, username, password, database, tablePrefix, options);
     }
 
     public int baseMax(String group) {
@@ -148,35 +125,5 @@ public class Configs extends ModularizedConfig {
         reloadResource();
 
         return getResource().getEnum("groups.saving.use", StorageUtils.SupportedStorageType.class);
-    }
-
-    public DatabaseConfig getConfiguredDatabaseUsers() {
-        FlatFileSection section = getResource().getSection("groups.saving.database");
-
-        StorageUtils.SupportedDatabaseType type = StorageUtils.SupportedDatabaseType.valueOf(section.getOrSetDefault("type", StorageUtils.SupportedDatabaseType.SQLITE.toString()));
-        String link;
-        switch (type) {
-            case MONGO:
-                link = section.getOrDefault("link", "mongodb://{{user}}:{{pass}}@{{host}}:{{port}}/{{database}}");
-                break;
-            case MYSQL:
-                link = section.getOrDefault("link", "jdbc:mysql://{{host}}:{{port}}/{{database}}{{options}}");
-                break;
-            case SQLITE:
-                link = section.getOrDefault("link", "jdbc:sqlite:{{database}}.db");
-                break;
-            default:
-                link = section.getOrSetDefault("link", "jdbc:sqlite:{{database}}.db");
-                break;
-        }
-        String host = section.getOrSetDefault("host", "localhost");
-        int port = section.getOrSetDefault("port", 3306);
-        String username = section.getOrSetDefault("username", "user");
-        String password = section.getOrSetDefault("password", "pass1234");
-        String database = section.getOrSetDefault("database", "streamline");
-        String tablePrefix = section.getOrSetDefault("table-prefix", "sl_");
-        String options = section.getOrSetDefault("options", "?useSSL=false&serverTimezone=UTC");
-
-        return new DatabaseConfig(type, link, host, port, username, password, database, tablePrefix, options);
     }
 }

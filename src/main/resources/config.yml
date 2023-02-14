@@ -10,14 +10,6 @@ groups:
     # MONGO (NoSQL database)
     # MYSQL (SQL database)
     use: YAML
-    # Settings for only if using MONGO or MYSQL above.
-    databases:
-      # Connection URL for connecting to the database.
-      connection-uri: "mongodb://<user>:<pass>@<host>:<port>/?authSource=admin&readPreference=primary&appname=StreamlineGroups&ssl=false"
-      # The actual database to use.
-      database: "streamline_groups"
-      # The table (MYSQL) or collection (MONGO) prefix.
-      prefix: "sl_"
   # The base settings for groups.
   base:
     # The maximum amount of players per base group.
@@ -100,11 +92,3 @@ grouped-users:
     # MONGO (NoSQL database)
     # MYSQL (SQL database)
     use: YAML
-    # Settings for only if using MONGO or MYSQL above.
-    databases:
-      # Connection URL for connecting to the database.
-      connection-uri: "mongodb://<user>:<pass>@<host>:<port>/?authSource=admin&readPreference=primary&appname=StreamlineGroups&ssl=false"
-      # The actual database to use.
-      database: "streamline_grouped_users"
-      # The table (MYSQL) or collection (MONGO) prefix.
-      prefix: "sl_"

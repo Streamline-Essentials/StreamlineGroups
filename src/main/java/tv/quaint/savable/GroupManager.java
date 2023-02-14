@@ -2,6 +2,8 @@ package tv.quaint.savable;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.streamline.api.SLAPI;
+import net.streamline.api.configs.given.GivenConfigs;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.savables.SavableResource;
 import net.streamline.api.savables.users.StreamlineUser;
@@ -13,19 +15,30 @@ import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.CreatePartyEvent;
 import tv.quaint.savable.parties.PartyChatEvent;
 import tv.quaint.savable.parties.SavableParty;
+import tv.quaint.storage.StorageUtils;
 import tv.quaint.storage.resources.StorageResource;
+import tv.quaint.storage.resources.cache.CachedResource;
+import tv.quaint.storage.resources.cache.CachedResourceUtils;
+import tv.quaint.storage.resources.databases.DatabaseResource;
+import tv.quaint.storage.resources.databases.SQLResource;
+import tv.quaint.storage.resources.databases.configurations.DatabaseConfig;
+import tv.quaint.storage.resources.databases.processing.DatabaseValue;
 import tv.quaint.storage.resources.flat.FlatFileResource;
 import tv.quaint.thebase.lib.leonhard.storage.Config;
 import tv.quaint.thebase.lib.leonhard.storage.Json;
 import tv.quaint.thebase.lib.leonhard.storage.Toml;
+import tv.quaint.thebase.lib.mongodb.MongoClient;
 
 import java.io.File;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class GroupManager {
     @Getter @Setter
@@ -47,6 +60,7 @@ public class GroupManager {
 
     public static void loadGroupedUser(GroupedUser user) {
         loadedGroupedUsers.add(user);
+        syncUser(user);
     }
 
     public static void unloadGroupedUser(GroupedUser user) {
@@ -68,7 +82,9 @@ public class GroupManager {
         GroupedUser user = getGroupedUser(uuid);
         if (user != null) return user;
 
-        return new GroupedUser(uuid, load);
+        user = new GroupedUser(uuid, load);
+
+        return user;
     }
 
     @Getter @Setter
@@ -81,6 +97,7 @@ public class GroupManager {
         }
         groups.add(group);
         getLoadedGroups().put(group.getClass(), groups);
+        syncGroup(group);
     }
 
     public static ConcurrentSkipListSet<SavableGroup> getGroupsOf(Class<? extends SavableGroup> clazz) {
@@ -132,45 +149,243 @@ public class GroupManager {
         return resource.exists();
     }
 
+    public static void getUserFromDatabase(GroupedUser group) {
+        StorageUtils.SupportedStorageType type = StreamlineGroups.getConfigs().getSavingUseUsers();
+        if (type == StorageUtils.SupportedStorageType.YAML || type == StorageUtils.SupportedStorageType.JSON || type == StorageUtils.SupportedStorageType.TOML) return;
+
+        CachedResource<?> cachedResource = (CachedResource<?>) group.getStorageResource();
+        String tableName = SLAPI.getMainDatabase().getConfig().getTablePrefix() + "grouped_users";
+
+        try {
+            boolean changed = false;
+            switch (GivenConfigs.getMainConfig().savingUseType()) {
+                case MYSQL:
+                case SQLITE:
+                case MONGO:
+                    if (! SLAPI.getMainDatabase().exists(tableName)) {
+                        return;
+                    }
+                    CachedResourceUtils.updateCache(tableName, cachedResource.getDiscriminatorKey(), cachedResource.getDiscriminatorAsString(), cachedResource, SLAPI.getMainDatabase());
+                    changed = true;
+                    break;
+            }
+            if (changed) group.loadValues();
+        } catch (Exception e) {
+            syncUser(group);
+        }
+    }
+
+    public static boolean isLoaded(String uuid) {
+        return getGroupedUser(uuid) != null;
+    }
+
+    public static void getUserFromDatabase(String uuid) {
+        if (! isLoaded(uuid)) return;
+        getUserFromDatabase(getGroupedUser(uuid));
+    }
+
+    public static void getAllUsersFromDatabase() {
+        getLoadedGroupedUsers().forEach(GroupManager::getUserFromDatabase);
+    }
+
+    public static void syncUser(GroupedUser groupedUser) {
+        switch (StreamlineGroups.getConfigs().getSavingUseUsers()) {
+            case MYSQL:
+            case SQLITE:
+            case MONGO:
+                CachedResource<?> cachedResource = (CachedResource<?>) groupedUser.getStorageResource();
+                String tableName = SLAPI.getMainDatabase().getConfig().getTablePrefix() + "grouped_users";
+                CachedResourceUtils.pushToDatabase(tableName, cachedResource, SLAPI.getMainDatabase());
+                break;
+        }
+    }
+
+    public static void syncUser(String uuid) {
+        if (! isLoaded(uuid)) return;
+        syncUser(getGroupedUser(uuid));
+    }
+
+    public static void syncAllUsers() {
+        getLoadedGroupedUsers().forEach(GroupManager::syncUser);
+    }
+
     public static File groupFolder(Class<? extends SavableResource> clazz) {
         File folder = new File(StreamlineGroups.getGroupsFolder(), clazz.getSimpleName() + File.separator);
         folder.mkdirs();
         return folder;
     }
 
-    public static StorageResource<?> newStorageResource(String uuid, Class<? extends SavableGroup> clazz) {
+    public static void getGroupFromDatabase(SavableGroup group) {
+        StorageUtils.SupportedStorageType type = StreamlineGroups.getConfigs().savingUse();
+        if (type == StorageUtils.SupportedStorageType.YAML || type == StorageUtils.SupportedStorageType.JSON || type == StorageUtils.SupportedStorageType.TOML) return;
+
+        CachedResource<?> cachedResource = (CachedResource<?>) group.getStorageResource();
+        String tableName = SLAPI.getMainDatabase().getConfig().getTablePrefix() + "grouped_users";
+
+        try {
+            boolean changed = false;
+            switch (GivenConfigs.getMainConfig().savingUseType()) {
+                case MYSQL:
+                case SQLITE:
+                case MONGO:
+                    if (! SLAPI.getMainDatabase().exists(tableName)) {
+                        return;
+                    }
+                    CachedResourceUtils.updateCache(tableName, cachedResource.getDiscriminatorKey(), cachedResource.getDiscriminatorAsString(), cachedResource, SLAPI.getMainDatabase());
+                    changed = true;
+                    break;
+            }
+            if (changed) group.loadValues();
+        } catch (Exception e) {
+            syncGroup(group);
+        }
+    }
+
+    public static boolean isLoaded(String uuid, Class<? extends SavableGroup> clazz) {
+        return getGroup(clazz, uuid) != null;
+    }
+
+    public static void getGroupFromDatabase(String uuid, Class<? extends SavableGroup> clazz) {
+        if (! isLoaded(uuid, clazz)) return;
+        getGroupFromDatabase(getGroup(clazz, uuid));
+    }
+
+    public static void getAllGroupsFromDatabase() {
+        getLoadedGroups().forEach((aClass, savableGroups) -> {
+            savableGroups.forEach(GroupManager::getGroupFromDatabase);
+        });
+    }
+
+    public static void syncGroup(SavableGroup group) {
         switch (StreamlineGroups.getConfigs().savingUse()) {
-            case YAML -> {
-                return new FlatFileResource<>(Config.class, uuid + ".yml", groupFolder(clazz), false);
-            }
-            case JSON -> {
-                return new FlatFileResource<>(Json.class, uuid + ".json", groupFolder(clazz), false);
-            }
-            case TOML -> {
-                return new FlatFileResource<>(Toml.class, uuid + ".toml", groupFolder(clazz), false);
-            }
-            case MONGO, SQLITE, MYSQL -> {
-                return null;
-            }
+            case MYSQL:
+            case SQLITE:
+            case MONGO:
+                CachedResource<?> cachedResource = (CachedResource<?>) group.getStorageResource();
+                String tableName = SLAPI.getMainDatabase().getConfig().getTablePrefix() + group.getClass().getSimpleName();
+                CachedResourceUtils.pushToDatabase(tableName, cachedResource, SLAPI.getMainDatabase());
+                break;
+        }
+    }
+
+    public static void syncGroup(String uuid, Class<? extends SavableGroup> clazz) {
+        if (! isLoaded(uuid, clazz)) return;
+        syncGroup(getGroup(clazz, uuid));
+    }
+
+    public static void syncAllGroups() {
+        getLoadedGroups().forEach((aClass, savableGroups) -> {
+            savableGroups.forEach(GroupManager::syncGroup);
+        });
+    }
+
+    public static boolean userExists(String uuid) {
+        StorageUtils.SupportedStorageType type = StreamlineGroups.getConfigs().getSavingUseUsers();
+        DatabaseConfig config = GivenConfigs.getMainConfig().getConfiguredDatabase();
+        File userFolder = SLAPI.getUserFolder();
+        switch (type) {
+            case YAML:
+                File[] files = userFolder.listFiles();
+                if (files == null) return false;
+
+                for (File file : files) {
+                    if (file.getName().equals(uuid + ".yml")) return true;
+                }
+                return false;
+            case JSON:
+                File[] files2 = userFolder.listFiles();
+                if (files2 == null) return false;
+
+                for (File file : files2) {
+                    if (file.getName().equals(uuid + ".json")) return true;
+                }
+                return false;
+            case TOML:
+                File[] files3 = userFolder.listFiles();
+                if (files3 == null) return false;
+
+                for (File file : files3) {
+                    if (file.getName().equals(uuid + ".toml")) return true;
+                }
+                return false;
+            case MONGO:
+            case MYSQL:
+            case SQLITE:
+                return SLAPI.getMainDatabase().exists(SLAPI.getMainDatabase().getConfig().getTablePrefix() + "grouped_users", "uuid", uuid);
+            default:
+                return false;
+        }
+    }
+
+    public static StorageResource<?> newStorageResourceUsers(String uuid, Class<? extends GroupedUser> clazz) {
+        switch (StreamlineGroups.getConfigs().savingUse()) {
+            case YAML:
+                return new FlatFileResource<>(Config.class, uuid + ".yml", StreamlineGroups.getUsersFolder(), false);
+            case JSON:
+                return new FlatFileResource<>(Json.class, uuid + ".json", StreamlineGroups.getUsersFolder(), false);
+            case TOML:
+                return new FlatFileResource<>(Toml.class, uuid + ".toml", StreamlineGroups.getUsersFolder(), false);
+            case MONGO:
+                return new CachedResource<>(MongoClient.class, "uuid", uuid);
+            case MYSQL:
+            case SQLITE:
+                return new CachedResource<>(Connection.class, "uuid", uuid);
         }
 
         return null;
     }
 
-    public static StorageResource<?> newStorageResourceUsers(String uuid, Class<? extends SavableResource> clazz) {
+    public static boolean groupExists(String uuid, Class<? extends SavableGroup> clazz) {
+        StorageUtils.SupportedStorageType type = StreamlineGroups.getConfigs().savingUse();
+        DatabaseConfig config = GivenConfigs.getMainConfig().getConfiguredDatabase();
+        File userFolder = SLAPI.getUserFolder();
+        switch (type) {
+            case YAML:
+                File[] files = userFolder.listFiles();
+                if (files == null) return false;
+
+                for (File file : files) {
+                    if (file.getName().equals(uuid + ".yml")) return true;
+                }
+                return false;
+            case JSON:
+                File[] files2 = userFolder.listFiles();
+                if (files2 == null) return false;
+
+                for (File file : files2) {
+                    if (file.getName().equals(uuid + ".json")) return true;
+                }
+                return false;
+            case TOML:
+                File[] files3 = userFolder.listFiles();
+                if (files3 == null) return false;
+
+                for (File file : files3) {
+                    if (file.getName().equals(uuid + ".toml")) return true;
+                }
+                return false;
+            case MONGO:
+            case MYSQL:
+            case SQLITE:
+                return SLAPI.getMainDatabase().exists(SLAPI.getMainDatabase().getConfig().getTablePrefix() + clazz.getSimpleName(), "uuid", uuid);
+            default:
+                return false;
+        }
+    }
+
+    public static <T extends SavableGroup> StorageResource<?> newStorageResource(String uuid, Class<T> clazz) {
         switch (StreamlineGroups.getConfigs().savingUse()) {
-            case YAML -> {
+            case YAML:
                 return new FlatFileResource<>(Config.class, uuid + ".yml", StreamlineGroups.getUsersFolder(), false);
-            }
-            case JSON -> {
+            case JSON:
                 return new FlatFileResource<>(Json.class, uuid + ".json", StreamlineGroups.getUsersFolder(), false);
-            }
-            case TOML -> {
+            case TOML:
                 return new FlatFileResource<>(Toml.class, uuid + ".toml", StreamlineGroups.getUsersFolder(), false);
-            }
-            case MONGO, SQLITE, MYSQL -> {
-                return null;
-            }
+            case MONGO:
+                return new CachedResource<>(MongoClient.class, "uuid", uuid);
+            case MYSQL:
+            case SQLITE:
+                return new CachedResource<>(Connection.class, "uuid", uuid);
         }
 
         return null;
@@ -184,6 +399,7 @@ public class GroupManager {
             guild = new SavableGuild(uuid);
 
             loadGroup(guild);
+            getGroupFromDatabase(guild);
             return guild;
         } else {
             return null;
@@ -198,6 +414,7 @@ public class GroupManager {
             party = new SavableParty(uuid);
 
             loadGroup(party);
+            getGroupFromDatabase(party);
             return party;
         } else {
             return null;
@@ -494,7 +711,7 @@ public class GroupManager {
                     .replace("%this_role_name%", a.getName())
                     .replace("%this_role_max%", String.valueOf(a.getMax()))
                     .replace("%this_role_priority%", String.valueOf(a.getPriority()))
-                    .replace("%this_role_flags%", ModuleUtils.getListAsFormattedString(a.getFlags().stream().toList()))
+                    .replace("%this_role_flags%", ModuleUtils.getListAsFormattedString(new ArrayList<>(a.getFlags())))
                     .replace("%this_role_members%", ModuleUtils.getListAsFormattedString(formattedNames))
             );
         });
@@ -523,7 +740,7 @@ public class GroupManager {
                     .replace("%this_role_name%", a.getName())
                     .replace("%this_role_max%", String.valueOf(a.getMax()))
                     .replace("%this_role_priority%", String.valueOf(a.getPriority()))
-                    .replace("%this_role_flags%", ModuleUtils.getListAsFormattedString(a.getFlags().stream().toList()))
+                    .replace("%this_role_flags%", ModuleUtils.getListAsFormattedString(new ArrayList<>(a.getFlags())))
                     .replace("%this_role_members%", ModuleUtils.getListAsFormattedString(formattedNames))
             );
         });

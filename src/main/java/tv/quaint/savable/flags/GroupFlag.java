@@ -5,6 +5,7 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 public enum GroupFlag {
     LEADER("Signifies that you are a leader in the group."),
@@ -27,7 +28,7 @@ public enum GroupFlag {
 
     GroupFlag(String description, String... notes) {
         this.description = description;
-        this.notes = Arrays.stream(notes).toList();
+        this.notes = Arrays.stream(notes).collect(Collectors.toList());
     }
 
     public static GroupFlag get(String s) {

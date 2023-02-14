@@ -34,7 +34,6 @@ public abstract class SavableGroup extends SavableResource {
     public SavableGroup(String uuid, Class<? extends SavableGroup> clazz) {
         super(uuid, GroupManager.newStorageResource(uuid, clazz));
         this.owner = ModuleUtils.getOrGetUser(uuid);
-        groupRoleMap = new GroupRoleMap(this);
         groupRoleMap.applyUser(groupRoleMap.getRolesOrdered().lastEntry().getValue(), this.owner);
         GroupedUser u = GroupManager.getOrGetGroupedUser(uuid, false);
         u.associateWith(this.getClass(), getUuid());
@@ -48,6 +47,7 @@ public abstract class SavableGroup extends SavableResource {
         isPublic = getOrSetDefault("settings.public.toggled", false);
         maxSize = getOrSetDefault("settings.size.max", StreamlineGroups.getConfigs().baseMax("default"));
         createDate = new Date(getOrSetDefault("create-date", new Date().getTime()));
+        groupRoleMap = GroupRoleMap.fromString(this, getOrSetDefault("roles", GroupRoleMap.getDefaultRoleString(this.getClass())));
 
         populateMoreDefaults();
     }
@@ -87,6 +87,7 @@ public abstract class SavableGroup extends SavableResource {
         isPublic = getOrSetDefault("settings.public.toggled", isPublic);
         maxSize = getOrSetDefault("settings.size.max", maxSize);
         createDate = new Date(getOrSetDefault("create-date", createDate.getTime()));
+        groupRoleMap = GroupRoleMap.fromString(this, getOrSetDefault("roles", GroupRoleMap.getDefaultRoleString(this.getClass())));
 
         loadMoreValues();
     }
@@ -101,7 +102,9 @@ public abstract class SavableGroup extends SavableResource {
         // Settings.
         set("settings.mute.toggled", isMuted);
         set("settings.public.toggled", isPublic);
+        set("settings.size.max", maxSize);
         set("create-date", createDate.getTime());
+        set("roles", groupRoleMap.toString());
 
         saveMore();
 
@@ -263,7 +266,7 @@ public abstract class SavableGroup extends SavableResource {
         groupRoleMap.demote(user);
     }
 
-    public void disband(){
+    public void disband() {
         for (StreamlineUser member : groupRoleMap.getAllUsers()) {
             GroupedUser user = GroupManager.getOrGetGroupedUser(member.getUuid());
             user.disassociateWith(this.getClass(), this.getUuid());

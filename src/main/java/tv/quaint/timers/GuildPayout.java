@@ -14,7 +14,8 @@ public class GuildPayout extends ModuleRunnable {
     @Override
     public void run() {
         for (SavableGroup group : GroupManager.getGroupsOf(SavableGuild.class)) {
-            if (! (group instanceof SavableGuild guild)) continue;
+            if (! (group instanceof SavableGuild)) continue;
+            SavableGuild guild = (SavableGuild) group;
             guild.addTotalXP(StreamlineGroups.getConfigs().guildPayoutExperienceAmount());
         }
     }

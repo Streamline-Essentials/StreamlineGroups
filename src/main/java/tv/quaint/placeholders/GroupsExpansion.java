@@ -19,8 +19,10 @@ import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
 import tv.quaint.utils.MatcherUtils;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class GroupsExpansion extends RATExpansion {
 
@@ -76,7 +78,7 @@ public class GroupsExpansion extends RATExpansion {
                 return String.valueOf(role.getPriority());
             }
             if (params.equals("party_role_flags")) {
-                return ModuleUtils.getListAsFormattedString(role.getFlags().stream().toList());
+                return ModuleUtils.getListAsFormattedString(new ArrayList<>(role.getFlags()));
             }
         }
         if (params.equals("party_total_size")) {
@@ -132,7 +134,7 @@ public class GroupsExpansion extends RATExpansion {
                 return String.valueOf(role.getPriority());
             }
             if (params.equals("guild_role_flags")) {
-                return ModuleUtils.getListAsFormattedString(role.getFlags().stream().toList());
+                return ModuleUtils.getListAsFormattedString(new ArrayList<>(role.getFlags()));
             }
         }
         if (params.equals("guild_total_size")) {

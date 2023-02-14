@@ -41,7 +41,7 @@ public class GuildCommand extends ModuleCommand {
         String action = strings[0].toLowerCase(Locale.ROOT);
 
         switch (action) {
-            case "create" -> {
+            case "create":
                 if (strings.length < 2) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
@@ -52,8 +52,8 @@ public class GuildCommand extends ModuleCommand {
                 }
 
                 GroupManager.createGuild(sender, sender, strings[1]);
-            }
-            case "rename" -> {
+                break;
+            case "rename":
                 if (strings.length < 2) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
@@ -64,8 +64,8 @@ public class GuildCommand extends ModuleCommand {
                 }
 
                 GroupManager.renameGuild(sender, sender, strings[1]);
-            }
-            case "list" -> {
+                break;
+            case "list":
                 if (strings.length < 2) {
                     GroupManager.listGuild(sender, sender);
                     return;
@@ -84,22 +84,22 @@ public class GuildCommand extends ModuleCommand {
                 }
 
                 GroupManager.listGuild(sender, other);
-            }
-            case "invite" -> {
+                break;
+            case "invite":
                 if (strings.length < 2) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
                 }
 
-                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+                StreamlineUser otherInvite = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (other == null) {
+                if (otherInvite == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
                 if (strings.length == 2) {
-                    GroupManager.invitePlayerGuild(sender, sender, other);
+                    GroupManager.invitePlayerGuild(sender, sender, otherInvite);
                     return;
                 }
 
@@ -122,29 +122,29 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupManager.invitePlayerGuild(sender, other, otherOther);
-            }
-            case "accept" -> {
+                GroupManager.invitePlayerGuild(sender, otherInvite, otherOther);
+                break;
+            case "accept":
                 if (strings.length < 2) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
                 }
 
-                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+                StreamlineUser otherAccept = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (other == null) {
+                if (otherAccept == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
                 if (strings.length == 2) {
-                    GroupManager.acceptInviteGuild(sender, other, sender);
+                    GroupManager.acceptInviteGuild(sender, otherAccept, sender);
                     return;
                 }
 
-                StreamlineUser otherOther = ModuleUtils.getOrGetUserByName(strings[2]);
+                StreamlineUser otherOtherAccept = ModuleUtils.getOrGetUserByName(strings[2]);
 
-                if (otherOther == null) {
+                if (otherOtherAccept == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -154,36 +154,36 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
-                SavableGuild guild = user.getGroup(SavableGuild.class);
-                if (guild == null) {
+                GroupedUser userAccept = GroupManager.getOrGetGroupedUser(otherOtherAccept.getUuid());
+                SavableGuild guildAccept = userAccept.getGroup(SavableGuild.class);
+                if (guildAccept == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.acceptInviteGuild(sender, other, otherOther);
-            }
-            case "deny" -> {
+                GroupManager.acceptInviteGuild(sender, otherAccept, otherOtherAccept);
+                break;
+            case "deny":
                 if (strings.length < 2) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
                 }
 
-                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+                StreamlineUser otherDeny = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (other == null) {
+                if (otherDeny == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
                 if (strings.length == 2) {
-                    GroupManager.denyInviteGuild(sender, other, sender);
+                    GroupManager.denyInviteGuild(sender, otherDeny, sender);
                     return;
                 }
 
-                StreamlineUser otherOther = ModuleUtils.getOrGetUserByName(strings[2]);
+                StreamlineUser otherOtherDeny = ModuleUtils.getOrGetUserByName(strings[2]);
 
-                if (otherOther == null) {
+                if (otherOtherDeny == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -193,24 +193,24 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
-                SavableGuild guild = user.getGroup(SavableGuild.class);
-                if (guild == null) {
+                GroupedUser userDeny = GroupManager.getOrGetGroupedUser(otherOtherDeny.getUuid());
+                SavableGuild guildDeny = userDeny.getGroup(SavableGuild.class);
+                if (guildDeny == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.denyInviteGuild(sender, other, otherOther);
-            }
-            case "disband" -> {
+                GroupManager.denyInviteGuild(sender, otherDeny, otherOtherDeny);
+                break;
+            case "disband":
                 if (strings.length < 2) {
                     GroupManager.disbandGuild(sender, sender);
                     return;
                 }
 
-                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+                StreamlineUser otherDisband = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (other == null) {
+                if (otherDisband == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -220,36 +220,36 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(other.getUuid());
-                SavableGuild guild = user.getGroup(SavableGuild.class);
-                if (guild == null) {
+                GroupedUser userDisband = GroupManager.getOrGetGroupedUser(otherDisband.getUuid());
+                SavableGuild guildDisband = userDisband.getGroup(SavableGuild.class);
+                if (guildDisband == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.disbandGuild(sender, guild.owner);
-            }
-            case "promote" -> {
+                GroupManager.disbandGuild(sender, guildDisband.owner);
+                break;
+            case "promote":
                 if (strings.length < 2) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
                 }
 
-                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+                StreamlineUser otherPromote = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (other == null) {
+                if (otherPromote == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
                 if (strings.length == 2) {
-                    GroupManager.promoteGuild(sender, sender, other);
+                    GroupManager.promoteGuild(sender, sender, otherPromote);
                     return;
                 }
 
-                StreamlineUser otherOther = ModuleUtils.getOrGetUserByName(strings[2]);
+                StreamlineUser otherOtherPromote = ModuleUtils.getOrGetUserByName(strings[2]);
 
-                if (otherOther == null) {
+                if (otherOtherPromote == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -259,36 +259,36 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
-                SavableGuild guild = user.getGroup(SavableGuild.class);
-                if (guild == null) {
+                GroupedUser userPromote = GroupManager.getOrGetGroupedUser(otherOtherPromote.getUuid());
+                SavableGuild guildPromote = userPromote.getGroup(SavableGuild.class);
+                if (guildPromote == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.promoteGuild(sender, other, otherOther);
-            }
-            case "demote" -> {
+                GroupManager.promoteGuild(sender, otherPromote, otherOtherPromote);
+                break;
+            case "demote":
                 if (strings.length < 2) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
                 }
 
-                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+                StreamlineUser otherDemote = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (other == null) {
+                if (otherDemote == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
                 if (strings.length == 2) {
-                    GroupManager.demoteGuild(sender, sender, other);
+                    GroupManager.demoteGuild(sender, sender, otherDemote);
                     return;
                 }
 
-                StreamlineUser otherOther = ModuleUtils.getOrGetUserByName(strings[2]);
+                StreamlineUser otherOtherDemote = ModuleUtils.getOrGetUserByName(strings[2]);
 
-                if (otherOther == null) {
+                if (otherOtherDemote == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -298,24 +298,24 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
-                SavableGuild guild = user.getGroup(SavableGuild.class);
-                if (guild == null) {
+                GroupedUser userDemote = GroupManager.getOrGetGroupedUser(otherOtherDemote.getUuid());
+                SavableGuild guildDemote = userDemote.getGroup(SavableGuild.class);
+                if (guildDemote == null) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.demoteGuild(sender, other, otherOther);
-            }
-            case "leave" -> {
+                GroupManager.demoteGuild(sender, otherDemote, otherOtherDemote);
+                break;
+            case "leave":
                 if (strings.length < 2) {
                     GroupManager.leaveGuild(sender, sender);
                     return;
                 }
 
-                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+                StreamlineUser otherLeave = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (other == null) {
+                if (otherLeave == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -325,9 +325,9 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupManager.leaveGuild(sender, other);
-            }
-            case "chat" -> {
+                GroupManager.leaveGuild(sender, otherLeave);
+                break;
+            case "chat":
                 if (strings.length < 2) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
@@ -336,8 +336,8 @@ public class GuildCommand extends ModuleCommand {
                 String message = ModuleUtils.argsToStringMinus(strings, 0);
 
                 GroupManager.chatGuild(sender, sender, message);
-            }
-            case "chat-as" -> {
+                break;
+            case "chat-as":
                 if (strings.length < 3) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
@@ -348,43 +348,18 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+                StreamlineUser otherChatAs = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (other == null) {
+                if (otherChatAs == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
-                String message = ModuleUtils.argsToStringMinus(strings, 0, 1);
+                String messageChatAs = ModuleUtils.argsToStringMinus(strings, 0, 1);
 
-                GroupManager.chatGuild(sender, other, message);
-            }
-            case "create-as" -> {
-                if (strings.length < 3) {
-                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
-                    return;
-                }
-
-                if (strings.length > 3) {
-                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_MANY.get());
-                    return;
-                }
-
-                if (! ModuleUtils.hasPermission(sender, useOther)) {
-                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
-                    return;
-                }
-
-                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
-
-                if (other == null) {
-                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
-                    return;
-                }
-
-                GroupManager.createGuild(sender, other, strings[2]);
-            }
-            case "rename-as" -> {
+                GroupManager.chatGuild(sender, otherChatAs, messageChatAs);
+                break;
+            case "create-as":
                 if (strings.length < 3) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
                     return;
@@ -400,15 +375,40 @@ public class GuildCommand extends ModuleCommand {
                     return;
                 }
 
-                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
+                StreamlineUser otherCreateAs = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (other == null) {
+                if (otherCreateAs == null) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
-                GroupManager.renameGuild(sender, other, strings[2]);
-            }
+                GroupManager.createGuild(sender, otherCreateAs, strings[2]);
+                break;
+            case "rename-as":
+                if (strings.length < 3) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
+                    return;
+                }
+
+                if (strings.length > 3) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_MANY.get());
+                    return;
+                }
+
+                if (! ModuleUtils.hasPermission(sender, useOther)) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
+                    return;
+                }
+
+                StreamlineUser otherRenameAs = ModuleUtils.getOrGetUserByName(strings[1]);
+
+                if (otherRenameAs == null) {
+                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
+                    return;
+                }
+
+                GroupManager.renameGuild(sender, otherRenameAs, strings[2]);
+                break;
         }
     }
 

@@ -4,6 +4,7 @@ import lombok.Getter;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.savables.SavableResource;
 import net.streamline.api.savables.users.StreamlineUser;
+import net.streamline.api.utils.UserUtils;
 import tv.quaint.storage.resources.StorageResource;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +25,8 @@ public class GroupedUser extends SavableResource {
     public GroupedUser(String uuid, boolean load) {
         super(uuid, GroupManager.newStorageResourceUsers(uuid, GroupedUser.class));
         if (load) loadAfter();
+
+        GroupManager.getUserFromDatabase(this);
     }
 
     @Override

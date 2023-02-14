@@ -56,7 +56,8 @@ public class SavableGuild extends SavableGroup {
 
         getAllUsers().forEach(streamlineUser -> {
             if (StreamlineGroups.getConfigs().announceLevelChangeTitle()) {
-                if (streamlineUser instanceof StreamlinePlayer player) {
+                if (streamlineUser instanceof StreamlinePlayer) {
+                    StreamlinePlayer player = (StreamlinePlayer) streamlineUser;
                     StreamlineTitle title = new StreamlineTitle(StreamlineGroups.getMessages().levelTitleMain(), StreamlineGroups.getMessages().levelTitleSub());
                     title.setFadeIn(StreamlineGroups.getMessages().levelTitleInTicks());
                     title.setStay(StreamlineGroups.getMessages().levelTitleStayTicks());

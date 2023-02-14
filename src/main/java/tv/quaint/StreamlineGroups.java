@@ -4,7 +4,6 @@ import lombok.Getter;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.modules.SimpleModule;
 import net.streamline.api.utils.UserUtils;
-import org.pf4j.PluginWrapper;
 import tv.quaint.commands.GuildCommand;
 import tv.quaint.commands.PartyCommand;
 import tv.quaint.configs.Configs;
@@ -16,7 +15,9 @@ import tv.quaint.savable.GroupManager;
 import tv.quaint.savable.GroupedUser;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
+import tv.quaint.thebase.lib.pf4j.PluginWrapper;
 import tv.quaint.timers.GroupSaver;
+import tv.quaint.timers.GroupSyncer;
 import tv.quaint.timers.GuildPayout;
 import tv.quaint.timers.UserSaver;
 
@@ -81,6 +82,8 @@ public class StreamlineGroups extends SimpleModule {
         userSaver = new UserSaver();
         guildPayout = new GuildPayout();
 
+        new GroupSyncer();
+
         GroupManager.registerClass(SavableGuild.class,  c -> {
             SavableGuild guild = GroupManager.getOrGetGuild(c);
             if (guild == null) return;
@@ -102,6 +105,8 @@ public class StreamlineGroups extends SimpleModule {
 
         getGroupsExpansion().init();
 
+        GroupManager.getOrGetGroupedUser(UserUtils.getConsole().getUuid());
+
         UserUtils.getLoadedUsersSet().forEach(a -> {
             GroupedUser user = GroupManager.getOrGetGroupedUser(a.getUuid());
             GroupManager.loadGroupedUser(user);
@@ -114,12 +119,14 @@ public class StreamlineGroups extends SimpleModule {
             savableGroups.forEach(savableGroup -> {
                 savableGroup.saveAll();
                 savableGroup.getStorageResource().push();
+                GroupManager.syncGroup(savableGroup);
             });
             GroupManager.getLoadedGroups().put(clazz, new ConcurrentSkipListSet<>());
         });
         GroupManager.getLoadedGroupedUsers().forEach(groupedUser -> {
             groupedUser.saveAll();
             groupedUser.getStorageResource().push();
+            GroupManager.syncUser(groupedUser);
         });
         GroupManager.setLoadedGroupedUsers(new ConcurrentSkipListSet<>());
         getGroupsExpansion().stop();

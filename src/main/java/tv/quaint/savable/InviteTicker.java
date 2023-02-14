@@ -27,7 +27,8 @@ public class InviteTicker<T extends SavableGroup> extends ModuleRunnable impleme
     @Override
     public void run() {
         group.remFromInvites(this);
-        if (group instanceof SavableGuild guild) {
+        if (group instanceof SavableGuild) {
+            SavableGuild guild = (SavableGuild) group;
             ModuleUtils.sendMessage(inviter, StreamlineGroups.getMessages().guildsTimeoutInviteSender()
                     .replace("%this_other%", invited.getName())
                     .replace("%this_sender%", invited.getName())
@@ -47,7 +48,8 @@ public class InviteTicker<T extends SavableGroup> extends ModuleRunnable impleme
                 );
             });
         }
-        if (group instanceof SavableParty party) {
+        if (group instanceof SavableParty) {
+            SavableParty party = (SavableParty) group;
             ModuleUtils.sendMessage(inviter, StreamlineGroups.getMessages().partiesTimeoutInviteSender()
                     .replace("%this_other%", invited.getName())
                     .replace("%this_sender%", invited.getName())
