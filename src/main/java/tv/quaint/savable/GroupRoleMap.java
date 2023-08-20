@@ -2,9 +2,9 @@ package tv.quaint.savable;
 
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.savables.users.StreamlineUser;
+import net.streamline.thebase.lib.re2j.Matcher;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.flags.GroupFlag;
-import tv.quaint.thebase.lib.re2j.Matcher;
 import tv.quaint.utils.MatcherUtils;
 
 import java.util.ArrayList;

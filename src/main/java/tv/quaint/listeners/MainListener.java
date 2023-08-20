@@ -15,6 +15,19 @@ public class MainListener implements BaseEventListener {
     public void updateLogin(LoginCompletedEvent event) {
         GroupedUser user = GroupManager.getOrGetGroupedUser(event.getResource().getUuid());
         GroupManager.loadGroupedUser(user);
+        SavableGuild guild = user.getGroup(SavableGuild.class);
+        SavableParty party = user.getGroup(SavableParty.class);
+
+        if (guild != null) {
+            if (! GroupManager.isLoaded(guild.getUuid(), SavableGuild.class)) {
+                GroupManager.loadGroup(guild);
+            }
+        }
+        if (party != null) {
+            if (! GroupManager.isLoaded(party.getUuid(), SavableParty.class)) {
+                GroupManager.loadGroup(party);
+            }
+        }
     }
 
     @BaseProcessor

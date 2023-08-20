@@ -13,8 +13,6 @@ public class UserSaver extends ModuleRunnable {
 
     @Override
     public void run() {
-        for (GroupedUser user : GroupManager.getLoadedGroupedUsers()) {
-            user.saveAll();
-        }
+        GroupManager.getLoadedGroupedUsers().forEach(GroupedUser::saveAll);
     }
 }

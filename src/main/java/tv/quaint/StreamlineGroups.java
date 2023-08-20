@@ -4,7 +4,10 @@ import lombok.Getter;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.modules.SimpleModule;
 import net.streamline.api.utils.UserUtils;
+import net.streamline.thebase.lib.pf4j.PluginWrapper;
+import tv.quaint.commands.GCCommand;
 import tv.quaint.commands.GuildCommand;
+import tv.quaint.commands.PCCommand;
 import tv.quaint.commands.PartyCommand;
 import tv.quaint.configs.Configs;
 import tv.quaint.configs.DefaultRoles;
@@ -15,7 +18,6 @@ import tv.quaint.savable.GroupManager;
 import tv.quaint.savable.GroupedUser;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
-import tv.quaint.thebase.lib.pf4j.PluginWrapper;
 import tv.quaint.timers.GroupSaver;
 import tv.quaint.timers.GroupSyncer;
 import tv.quaint.timers.GuildPayout;
@@ -62,7 +64,9 @@ public class StreamlineGroups extends SimpleModule {
     public void registerCommands() {
         setCommands(List.of(
                 new GuildCommand(this),
-                new PartyCommand(this)
+                new PartyCommand(this),
+                new GCCommand(),
+                new PCCommand()
         ));
     }
 

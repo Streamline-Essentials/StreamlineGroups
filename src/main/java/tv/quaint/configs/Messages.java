@@ -334,7 +334,7 @@ public class Messages extends ModularizedConfig {
     public String guildsChat() {
         reloadResource();
 
-        return getResource().getOrSetDefault("parties.chat", "&5Guild &7&l> &d%streamline_parse_%this_sender%:::*/*streamline_user_formatted*/*%&8: &f%this_message%");
+        return getResource().getOrSetDefault("guilds.chat", "&5Guild &7&l> &d%streamline_parse_%this_sender%:::*/*streamline_user_formatted*/*%&8: &f%this_message%");
     }
 
     public String guildsRenameSender() {

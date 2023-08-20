@@ -14,6 +14,8 @@ import net.streamline.api.savables.users.StreamlineUser;
 import net.streamline.api.utils.UserUtils;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.GroupManager;
+import tv.quaint.savable.GroupedUser;
+import tv.quaint.savable.SavableGroup;
 import tv.quaint.savable.SavableGroupRole;
 import tv.quaint.savable.guilds.SavableGuild;
 import tv.quaint.savable.parties.SavableParty;
@@ -43,120 +45,90 @@ public class GroupsExpansion extends RATExpansion {
         new IdentifiedReplaceable(this, "loaded_grouped_users", (s) -> String.valueOf(GroupManager.getLoadedGroupedUsers().size())).register();
 
         new IdentifiedUserReplaceable(this, MatcherUtils.makeLiteral("guild_") + "(.*?)", 1, (s, u) -> {
-            SavableGuild guild = GroupManager.getGroupOfUser(SavableGuild.class, u.getUuid());
+            GroupedUser groupedUser = GroupManager.getOrGetGroupedUser(u.getUuid());
+            SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
+
             if (guild == null) {
                 return StreamlineGroups.getMessages().placeholdersGuildNotFound();
             }
+
             String string = startsWithGuild(s.get(), guild, u);
             return string == null ? s.string() : string;
         }).register();
 
         new IdentifiedUserReplaceable(this, MatcherUtils.makeLiteral("party_") + "(.*?)", 1, (s, u) -> {
-            SavableParty party = GroupManager.getGroupOfUser(SavableParty.class, u.getUuid());
+            GroupedUser user = GroupManager.getOrGetGroupedUser(u.getUuid());
+            SavableParty party = user.getGroup(SavableParty.class);
+
             if (party == null) {
                 return StreamlineGroups.getMessages().placeholdersPartyNotFound();
             }
+
             String string = startsWithParty(s.get(), party, u);
             return string == null ? s.string() : string;
         }).register();
     }
 
     public String startsWithParty(String params, SavableParty party, StreamlineUser streamlineUser) {
-        if (params.startsWith("party_role_")) {
-            SavableGroupRole role = party.getRole(streamlineUser);
-            if (role == null) return null;
-            if (params.equals("party_role_identifier")) {
-                return String.valueOf(role.getIdentifier());
-            }
-            if (params.equals("party_role_name")) {
-                return String.valueOf(role.getName());
-            }
-            if (params.equals("party_role_max")) {
-                return String.valueOf(role.getMax());
-            }
-            if (params.equals("party_role_priority")) {
-                return String.valueOf(role.getPriority());
-            }
-            if (params.equals("party_role_flags")) {
-                return ModuleUtils.getListAsFormattedString(new ArrayList<>(role.getFlags()));
-            }
-        }
-        if (params.equals("party_total_size")) {
-            return String.valueOf(party.getAllUsers().size());
-        }
-        if (params.equals("party_size_max_current")) {
-            return String.valueOf(party.maxSize);
-        }
-        if (params.equals("party_size_max_absolute")) {
-            return String.valueOf(party.getMaxSize(party.owner));
-        }
-        if (params.equals("party_leader_absolute")) {
-            return ModuleUtils.getAbsolute(party.owner);
-        }
-        if (params.equals("party_leader_formatted")) {
-            return ModuleUtils.getFormatted(party.owner);
-        }
-        if (params.equals("party_leader_absolute_onlined")) {
-            return ModuleUtils.getOffOnAbsolute(party.owner);
-        }
-        if (params.equals("party_leader_formatted_onlined")) {
-            return ModuleUtils.getOffOnFormatted(party.owner);
-        }
-        return null;
+        return startsWithGroup(params, party, streamlineUser);
     }
 
     public String startsWithGuild(String params, SavableGuild guild, StreamlineUser streamlineUser) {
-        if (params.equals("guild_level")) {
+        if (params.equals("level")) {
             return String.valueOf(guild.level);
         }
-        if (params.equals("guild_xp_total")) {
+        if (params.equals("xp_total")) {
             return String.valueOf(guild.totalXP);
         }
-        if (params.equals("guild_xp_current")) {
+        if (params.equals("xp_current")) {
             return String.valueOf(guild.currentXP);
         }
-        if (params.equals("guild_name")) {
+        if (params.equals("name")) {
             return guild.name;
         }
-        if (params.startsWith("guild_role_")) {
-            SavableGroupRole role = guild.getRole(streamlineUser);
+        return startsWithGroup(params, guild, streamlineUser);
+    }
+
+    public String startsWithGroup(String params, SavableGroup group, StreamlineUser streamlineUser) {
+        if (params.startsWith("role_")) {
+            SavableGroupRole role = group.getRole(streamlineUser);
             if (role == null) return null;
-            if (params.equals("guild_role_identifier")) {
+            if (params.equals("role_identifier")) {
                 return String.valueOf(role.getIdentifier());
             }
-            if (params.equals("guild_role_name")) {
+            if (params.equals("role_name")) {
                 return String.valueOf(role.getName());
             }
-            if (params.equals("guild_role_max")) {
+            if (params.equals("role_max")) {
                 return String.valueOf(role.getMax());
             }
-            if (params.equals("guild_role_priority")) {
+            if (params.equals("role_priority")) {
                 return String.valueOf(role.getPriority());
             }
-            if (params.equals("guild_role_flags")) {
+            if (params.equals("role_flags")) {
                 return ModuleUtils.getListAsFormattedString(new ArrayList<>(role.getFlags()));
             }
         }
-        if (params.equals("guild_total_size")) {
-            return String.valueOf(guild.getAllUsers().size());
+        if (params.equals("total_size")) {
+            return String.valueOf(group.getAllUsers().size());
         }
-        if (params.equals("guild_size_max_current")) {
-            return String.valueOf(guild.maxSize);
+        if (params.equals("size_max_current")) {
+            return String.valueOf(group.maxSize);
         }
-        if (params.equals("guild_size_max_absolute")) {
-            return String.valueOf(guild.getMaxSize(guild.owner));
+        if (params.equals("size_max_absolute")) {
+            return String.valueOf(group.getMaxSize(group.owner));
         }
-        if (params.equals("guild_leader_absolute")) {
-            return ModuleUtils.getAbsolute(guild.owner);
+        if (params.equals("leader_absolute")) {
+            return ModuleUtils.getAbsolute(group.owner);
         }
-        if (params.equals("guild_leader_formatted")) {
-            return ModuleUtils.getFormatted(guild.owner);
+        if (params.equals("leader_formatted")) {
+            return ModuleUtils.getFormatted(group.owner);
         }
-        if (params.equals("guild_leader_absolute_onlined")) {
-            return ModuleUtils.getOffOnAbsolute(guild.owner);
+        if (params.equals("leader_absolute_onlined")) {
+            return ModuleUtils.getOffOnAbsolute(group.owner);
         }
-        if (params.equals("guild_leader_formatted_onlined")) {
-            return ModuleUtils.getOffOnFormatted(guild.owner);
+        if (params.equals("leader_formatted_onlined")) {
+            return ModuleUtils.getOffOnFormatted(group.owner);
         }
         return null;
     }

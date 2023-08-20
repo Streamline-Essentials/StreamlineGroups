@@ -3,8 +3,6 @@ package tv.quaint.configs;
 import net.streamline.api.configs.ModularizedConfig;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.storage.StorageUtils;
-import tv.quaint.storage.resources.databases.configurations.DatabaseConfig;
-import tv.quaint.thebase.lib.leonhard.storage.sections.FlatFileSection;
 
 import java.util.HashMap;
 

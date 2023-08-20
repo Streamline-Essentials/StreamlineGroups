@@ -42,11 +42,7 @@ public class PartyCommand extends ModuleCommand {
 
         switch (action) {
             case "create":
-                if (strings.length < 2) {
-                    ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
-                    return;
-                }
-                if (strings.length > 2) {
+                if (strings.length > 1) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_MANY.get());
                     return;
                 }
@@ -394,8 +390,10 @@ public class PartyCommand extends ModuleCommand {
             ));
         }
         if (strings.length == 2) {
-            if (strings[0].equalsIgnoreCase("create") || strings[0].equalsIgnoreCase("create-as")) {
-                return new ConcurrentSkipListSet<>(List.of("<name>"));
+            if (strings[0].equalsIgnoreCase("create-as")) {
+                if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
+                    return ModuleUtils.getOnlinePlayerNames();
+                }
             }
             if (strings[0].equalsIgnoreCase("list") || strings[0].equalsIgnoreCase("disband")) {
                 if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
@@ -434,13 +432,15 @@ public class PartyCommand extends ModuleCommand {
                 });
                 return names;
             }
+
+            if (strings[0].equalsIgnoreCase("accept") || strings[0].equalsIgnoreCase("deny")
+                    || strings[0].equalsIgnoreCase("invite")) {
+                return ModuleUtils.getOnlinePlayerNames();
+            }
         }
 
         if (strings.length == 3) {
-            if (strings[0].equalsIgnoreCase("promote") || strings[0].equalsIgnoreCase("demote")
-                    || strings[0].equalsIgnoreCase("accept") || strings[0].equalsIgnoreCase("deny")
-                    || strings[0].equalsIgnoreCase("invite") || strings[0].equalsIgnoreCase("create-as")
-                    || strings[0].equalsIgnoreCase("chat-as")) {
+            if (strings[0].equalsIgnoreCase("chat-as")) {
                 if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
                     return ModuleUtils.getOnlinePlayerNames();
                 }

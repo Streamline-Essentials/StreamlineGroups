@@ -7,6 +7,10 @@ import net.streamline.api.configs.given.GivenConfigs;
 import net.streamline.api.modules.ModuleUtils;
 import net.streamline.api.savables.SavableResource;
 import net.streamline.api.savables.users.StreamlineUser;
+import net.streamline.thebase.lib.leonhard.storage.Config;
+import net.streamline.thebase.lib.leonhard.storage.Json;
+import net.streamline.thebase.lib.leonhard.storage.Toml;
+import net.streamline.thebase.lib.mongodb.client.MongoClient;
 import tv.quaint.StreamlineGroups;
 import tv.quaint.savable.flags.GroupFlag;
 import tv.quaint.savable.guilds.CreateGuildEvent;
@@ -19,15 +23,8 @@ import tv.quaint.storage.StorageUtils;
 import tv.quaint.storage.resources.StorageResource;
 import tv.quaint.storage.resources.cache.CachedResource;
 import tv.quaint.storage.resources.cache.CachedResourceUtils;
-import tv.quaint.storage.resources.databases.DatabaseResource;
-import tv.quaint.storage.resources.databases.SQLResource;
 import tv.quaint.storage.resources.databases.configurations.DatabaseConfig;
-import tv.quaint.storage.resources.databases.processing.DatabaseValue;
 import tv.quaint.storage.resources.flat.FlatFileResource;
-import tv.quaint.thebase.lib.leonhard.storage.Config;
-import tv.quaint.thebase.lib.leonhard.storage.Json;
-import tv.quaint.thebase.lib.leonhard.storage.Toml;
-import tv.quaint.thebase.lib.mongodb.MongoClient;
 
 import java.io.File;
 import java.sql.Connection;
@@ -150,6 +147,8 @@ public class GroupManager {
     }
 
     public static void getUserFromDatabase(GroupedUser group) {
+        if (GivenConfigs.getMainDatabase() == null) return;
+
         StorageUtils.SupportedStorageType type = StreamlineGroups.getConfigs().getSavingUseUsers();
         if (type == StorageUtils.SupportedStorageType.YAML || type == StorageUtils.SupportedStorageType.JSON || type == StorageUtils.SupportedStorageType.TOML) return;
 
@@ -180,15 +179,21 @@ public class GroupManager {
     }
 
     public static void getUserFromDatabase(String uuid) {
+        if (GivenConfigs.getMainDatabase() == null) return;
+
         if (! isLoaded(uuid)) return;
         getUserFromDatabase(getGroupedUser(uuid));
     }
 
     public static void getAllUsersFromDatabase() {
+        if (GivenConfigs.getMainDatabase() == null) return;
+
         getLoadedGroupedUsers().forEach(GroupManager::getUserFromDatabase);
     }
 
     public static void syncUser(GroupedUser groupedUser) {
+        if (GivenConfigs.getMainDatabase() == null) return;
+
         switch (StreamlineGroups.getConfigs().getSavingUseUsers()) {
             case MYSQL:
             case SQLITE:
@@ -201,11 +206,15 @@ public class GroupManager {
     }
 
     public static void syncUser(String uuid) {
+        if (GivenConfigs.getMainDatabase() == null) return;
+
         if (! isLoaded(uuid)) return;
         syncUser(getGroupedUser(uuid));
     }
 
     public static void syncAllUsers() {
+        if (GivenConfigs.getMainDatabase() == null) return;
+
         getLoadedGroupedUsers().forEach(GroupManager::syncUser);
     }
 
@@ -216,6 +225,8 @@ public class GroupManager {
     }
 
     public static void getGroupFromDatabase(SavableGroup group) {
+        if (GivenConfigs.getMainDatabase() == null) return;
+
         StorageUtils.SupportedStorageType type = StreamlineGroups.getConfigs().savingUse();
         if (type == StorageUtils.SupportedStorageType.YAML || type == StorageUtils.SupportedStorageType.JSON || type == StorageUtils.SupportedStorageType.TOML) return;
 
@@ -257,6 +268,8 @@ public class GroupManager {
     }
 
     public static void syncGroup(SavableGroup group) {
+        if (GivenConfigs.getMainDatabase() == null) return;
+
         switch (StreamlineGroups.getConfigs().savingUse()) {
             case MYSQL:
             case SQLITE:
@@ -269,11 +282,15 @@ public class GroupManager {
     }
 
     public static void syncGroup(String uuid, Class<? extends SavableGroup> clazz) {
+        if (GivenConfigs.getMainDatabase() == null) return;
+
         if (! isLoaded(uuid, clazz)) return;
         syncGroup(getGroup(clazz, uuid));
     }
 
     public static void syncAllGroups() {
+        if (GivenConfigs.getMainDatabase() == null) return;
+
         getLoadedGroups().forEach((aClass, savableGroups) -> {
             savableGroups.forEach(GroupManager::syncGroup);
         });
@@ -281,7 +298,6 @@ public class GroupManager {
 
     public static boolean userExists(String uuid) {
         StorageUtils.SupportedStorageType type = StreamlineGroups.getConfigs().getSavingUseUsers();
-        DatabaseConfig config = GivenConfigs.getMainConfig().getConfiguredDatabase();
         File userFolder = SLAPI.getUserFolder();
         switch (type) {
             case YAML:
@@ -337,7 +353,6 @@ public class GroupManager {
 
     public static boolean groupExists(String uuid, Class<? extends SavableGroup> clazz) {
         StorageUtils.SupportedStorageType type = StreamlineGroups.getConfigs().savingUse();
-        DatabaseConfig config = GivenConfigs.getMainConfig().getConfiguredDatabase();
         File userFolder = SLAPI.getUserFolder();
         switch (type) {
             case YAML:
@@ -474,19 +489,22 @@ public class GroupManager {
         guild.addInvite(sender, toInvite);
 
         ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().guildsSendInviteSender()
-                .replace("%this_other%", toInvite.getName())
+                .replace("%this_other%", other.getName())
+                .replace("%this_target%", toInvite.getName())
                 .replace("%this_sender%", sender.getName())
                 .replace("%this_owner%", guild.owner.getName())
         );
         ModuleUtils.sendMessage(toInvite, StreamlineGroups.getMessages().guildsSendInviteOther()
-                .replace("%this_other%", toInvite.getName())
+                .replace("%this_other%", other.getName())
+                .replace("%this_target%", toInvite.getName())
                 .replace("%this_sender%", sender.getName())
                 .replace("%this_owner%", guild.owner.getName())
         );
         guild.getAllUsers().forEach(a -> {
             if (a.equals(sender)) return;
             ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().guildsSendInviteMembers()
-                    .replace("%this_other%", toInvite.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_target%", toInvite.getName())
                     .replace("%this_sender%", sender.getName())
                     .replace("%this_owner%", guild.owner.getName())
             );
@@ -511,19 +529,22 @@ public class GroupManager {
         party.addInvite(sender, toInvite);
 
         ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().partiesSendInviteSender()
-                .replace("%this_other%", toInvite.getName())
+                .replace("%this_other%", other.getName())
+                .replace("%this_target%", toInvite.getName())
                 .replace("%this_sender%", sender.getName())
                 .replace("%this_owner%", party.owner.getName())
         );
         ModuleUtils.sendMessage(toInvite, StreamlineGroups.getMessages().partiesSendInviteOther()
-                .replace("%this_other%", toInvite.getName())
+                .replace("%this_other%", other.getName())
+                .replace("%this_target%", toInvite.getName())
                 .replace("%this_sender%", sender.getName())
                 .replace("%this_owner%", party.owner.getName())
         );
         party.getAllUsers().forEach(a -> {
             if (a.equals(sender)) return;
             ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().partiesSendInviteMembers()
-                    .replace("%this_other%", toInvite.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_target%", toInvite.getName())
                     .replace("%this_sender%", sender.getName())
                     .replace("%this_owner%", party.owner.getName())
             );
@@ -556,19 +577,22 @@ public class GroupManager {
         guild.addMember(invited);
 
         ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().guildsAcceptSender()
-                .replace("%this_other%", invited.getName())
+                .replace("%this_other%", other.getName())
+                .replace("%this_target%", invited.getName())
                 .replace("%this_sender%", sender.getName())
                 .replace("%this_owner%", guild.owner.getName())
         );
         ModuleUtils.sendMessage(other, StreamlineGroups.getMessages().guildsAcceptOther()
-                .replace("%this_other%", invited.getName())
+                .replace("%this_other%", other.getName())
+                .replace("%this_target%", invited.getName())
                 .replace("%this_sender%", sender.getName())
                 .replace("%this_owner%", guild.owner.getName())
         );
         guild.getAllUsers().forEach(a -> {
             if (a.equals(sender)) return;
             ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().guildsAcceptMembers()
-                    .replace("%this_other%", invited.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_target%", invited.getName())
                     .replace("%this_sender%", sender.getName())
                     .replace("%this_owner%", guild.owner.getName())
             );
@@ -601,19 +625,22 @@ public class GroupManager {
         party.addMember(invited);
 
         ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().partiesAcceptSender()
-                .replace("%this_other%", invited.getName())
+                .replace("%this_other%", other.getName())
+                .replace("%this_target%", invited.getName())
                 .replace("%this_sender%", sender.getName())
                 .replace("%this_owner%", party.owner.getName())
         );
         ModuleUtils.sendMessage(other, StreamlineGroups.getMessages().partiesAcceptOther()
-                .replace("%this_other%", invited.getName())
+                .replace("%this_other%", other.getName())
+                .replace("%this_target%", invited.getName())
                 .replace("%this_sender%", sender.getName())
                 .replace("%this_owner%", party.owner.getName())
         );
         party.getAllUsers().forEach(a -> {
             if (a.equals(sender)) return;
             ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().partiesAcceptMembers()
-                    .replace("%this_other%", invited.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_target%", invited.getName())
                     .replace("%this_sender%", sender.getName())
                     .replace("%this_owner%", party.owner.getName())
             );
@@ -637,19 +664,22 @@ public class GroupManager {
         guild.remFromInvites(invited);
 
         ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().guildsDenySender()
-                .replace("%this_other%", invited.getName())
+                .replace("%this_other%", other.getName())
+                .replace("%this_target%", invited.getName())
                 .replace("%this_sender%", sender.getName())
                 .replace("%this_owner%", guild.owner.getName())
         );
         ModuleUtils.sendMessage(invited, StreamlineGroups.getMessages().guildsDenyOther()
-                .replace("%this_other%", invited.getName())
+                .replace("%this_other%", other.getName())
+                .replace("%this_target%", invited.getName())
                 .replace("%this_sender%", sender.getName())
                 .replace("%this_owner%", guild.owner.getName())
         );
         guild.getAllUsers().forEach(a -> {
             if (a.equals(sender)) return;
             ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().guildsDenyMembers()
-                    .replace("%this_other%", invited.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_target%", invited.getName())
                     .replace("%this_sender%", sender.getName())
                     .replace("%this_owner%", guild.owner.getName())
             );
@@ -673,19 +703,22 @@ public class GroupManager {
         party.remFromInvites(invited);
 
         ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().partiesDenySender()
-                .replace("%this_other%", invited.getName())
+                .replace("%this_other%", other.getName())
+                .replace("%this_target%", invited.getName())
                 .replace("%this_sender%", sender.getName())
                 .replace("%this_owner%", party.owner.getName())
         );
         ModuleUtils.sendMessage(invited, StreamlineGroups.getMessages().partiesDenyOther()
-                .replace("%this_other%", invited.getName())
+                .replace("%this_other%", other.getName())
+                .replace("%this_target%", invited.getName())
                 .replace("%this_sender%", sender.getName())
                 .replace("%this_owner%", party.owner.getName())
         );
         party.getAllUsers().forEach(a -> {
             if (a.equals(sender)) return;
             ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().partiesDenyMembers()
-                    .replace("%this_other%", invited.getName())
+                    .replace("%this_other%", other.getName())
+                    .replace("%this_target%", invited.getName())
                     .replace("%this_sender%", sender.getName())
                     .replace("%this_owner%", party.owner.getName())
             );
@@ -855,6 +888,7 @@ public class GroupManager {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteSender()
                         .replace("%this_sender%", sender.getName())
+                        .replace("%this_target%", promote.getName())
                         .replace("%this_other%", other.getName())
                         .replace("%this_owner%", guild.owner.getName())
                 );
@@ -863,6 +897,7 @@ public class GroupManager {
             if (user.equals(promote)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteOther()
                         .replace("%this_sender%", sender.getName())
+                        .replace("%this_target%", promote.getName())
                         .replace("%this_other%", other.getName())
                         .replace("%this_owner%", guild.owner.getName())
                 );
@@ -870,6 +905,7 @@ public class GroupManager {
             }
             ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteMembers()
                     .replace("%this_sender%", sender.getName())
+                    .replace("%this_target%", promote.getName())
                     .replace("%this_other%", other.getName())
                     .replace("%this_owner%", guild.owner.getName())
             );
@@ -915,23 +951,26 @@ public class GroupManager {
 
         for (StreamlineUser user : party.getAllUsers()) {
             if (user.equals(sender)) {
-                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteSender()
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesPromoteSender()
                         .replace("%this_sender%", sender.getName())
+                        .replace("%this_target%", promote.getName())
                         .replace("%this_other%", other.getName())
                         .replace("%this_owner%", party.owner.getName())
                 );
                 continue;
             }
             if (user.equals(promote)) {
-                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteOther()
+                ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesPromoteOther()
                         .replace("%this_sender%", sender.getName())
+                        .replace("%this_target%", promote.getName())
                         .replace("%this_other%", other.getName())
                         .replace("%this_owner%", party.owner.getName())
                 );
                 continue;
             }
-            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsPromoteMembers()
+            ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesPromoteMembers()
                     .replace("%this_sender%", sender.getName())
+                    .replace("%this_target%", promote.getName())
                     .replace("%this_other%", other.getName())
                     .replace("%this_owner%", party.owner.getName())
             );
@@ -940,7 +979,7 @@ public class GroupManager {
         party.promoteUser(promote);
     }
 
-    public static void demoteGuild(StreamlineUser sender, StreamlineUser other, StreamlineUser promote) {
+    public static void demoteGuild(StreamlineUser sender, StreamlineUser other, StreamlineUser demote) {
         GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableGuild guild = groupedUser.getGroup(SavableGuild.class);
 
@@ -949,17 +988,17 @@ public class GroupManager {
             return;
         }
 
-        if (! guild.hasMember(promote)) {
+        if (! guild.hasMember(demote)) {
             ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
             return;
         }
 
-        if (promote.equals(sender)) {
+        if (demote.equals(sender)) {
             ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotDemoteSelf());
             return;
         }
 
-        if (guild.getRole(promote).hasFlag(GroupFlag.LEADER)) {
+        if (guild.getRole(demote).hasFlag(GroupFlag.LEADER)) {
             ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotDemoteLeader());
             return;
         }
@@ -969,7 +1008,7 @@ public class GroupManager {
                 ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorWithoutFlag(GroupFlag.DEMOTE));
                 return;
             }
-            if (guild.getRole(promote).equals(guild.getRole(sender))) {
+            if (guild.getRole(demote).equals(guild.getRole(sender))) {
                 ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotDemoteSame());
                 return;
             }
@@ -979,14 +1018,16 @@ public class GroupManager {
             if (user.equals(sender)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsDemoteSender()
                         .replace("%this_sender%", sender.getName())
+                        .replace("%this_target%", demote.getName())
                         .replace("%this_other%", other.getName())
                         .replace("%this_owner%", guild.owner.getName())
                 );
                 continue;
             }
-            if (user.equals(promote)) {
+            if (user.equals(demote)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsDemoteOther()
                         .replace("%this_sender%", sender.getName())
+                        .replace("%this_target%", demote.getName())
                         .replace("%this_other%", other.getName())
                         .replace("%this_owner%", guild.owner.getName())
                 );
@@ -994,15 +1035,16 @@ public class GroupManager {
             }
             ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().guildsDemoteMembers()
                     .replace("%this_sender%", sender.getName())
+                    .replace("%this_target%", demote.getName())
                     .replace("%this_other%", other.getName())
                     .replace("%this_owner%", guild.owner.getName())
             );
         }
 
-        guild.demoteUser(promote);
+        guild.demoteUser(demote);
     }
 
-    public static void demoteParty(StreamlineUser sender, StreamlineUser other, StreamlineUser promote) {
+    public static void demoteParty(StreamlineUser sender, StreamlineUser other, StreamlineUser demote) {
         GroupedUser groupedUser = getOrGetGroupedUser(other.getUuid());
         SavableParty party = groupedUser.getGroup(SavableParty.class);
 
@@ -1011,17 +1053,17 @@ public class GroupManager {
             return;
         }
 
-        if (! party.hasMember(promote)) {
+        if (! party.hasMember(demote)) {
             ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
             return;
         }
 
-        if (promote.equals(sender)) {
+        if (demote.equals(sender)) {
             ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotDemoteSelf());
             return;
         }
 
-        if (party.getRole(promote).hasFlag(GroupFlag.LEADER)) {
+        if (party.getRole(demote).hasFlag(GroupFlag.LEADER)) {
             ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotDemoteLeader());
             return;
         }
@@ -1031,7 +1073,7 @@ public class GroupManager {
                 ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorWithoutFlag(GroupFlag.DEMOTE));
                 return;
             }
-            if (party.getRole(promote).equals(party.getRole(sender))) {
+            if (party.getRole(demote).equals(party.getRole(sender))) {
                 ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseCannotDemoteSame());
                 return;
             }
@@ -1042,14 +1084,16 @@ public class GroupManager {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesDemoteSender()
                         .replace("%this_sender%", sender.getName())
                         .replace("%this_other%", other.getName())
+                        .replace("%this_target%", demote.getName())
                         .replace("%this_owner%", party.owner.getName())
                 );
                 continue;
             }
-            if (user.equals(promote)) {
+            if (user.equals(demote)) {
                 ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesDemoteOther()
                         .replace("%this_sender%", sender.getName())
                         .replace("%this_other%", other.getName())
+                        .replace("%this_target%", demote.getName())
                         .replace("%this_owner%", party.owner.getName())
                 );
                 continue;
@@ -1057,11 +1101,12 @@ public class GroupManager {
             ModuleUtils.sendMessage(user, StreamlineGroups.getMessages().partiesDemoteMembers()
                     .replace("%this_sender%", sender.getName())
                     .replace("%this_other%", other.getName())
+                    .replace("%this_target%", demote.getName())
                     .replace("%this_owner%", party.owner.getName())
             );
         }
 
-        party.demoteUser(promote);
+        party.demoteUser(demote);
     }
 
     public static void leaveGuild(StreamlineUser sender, StreamlineUser other) {

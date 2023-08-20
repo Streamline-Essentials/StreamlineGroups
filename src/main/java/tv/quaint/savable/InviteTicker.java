@@ -31,19 +31,22 @@ public class InviteTicker<T extends SavableGroup> extends ModuleRunnable impleme
             SavableGuild guild = (SavableGuild) group;
             ModuleUtils.sendMessage(inviter, StreamlineGroups.getMessages().guildsTimeoutInviteSender()
                     .replace("%this_other%", invited.getName())
-                    .replace("%this_sender%", invited.getName())
+                    .replace("%this_sender%", inviter.getName())
+                    .replace("%this_target%", invited.getName())
                     .replace("%this_owner%", guild.getMember(guild.getUuid()).getName())
             );
             ModuleUtils.sendMessage(invited, StreamlineGroups.getMessages().guildsTimeoutInviteOther()
                     .replace("%this_other%", invited.getName())
-                    .replace("%this_sender%", invited.getName())
+                    .replace("%this_sender%", inviter.getName())
+                    .replace("%this_target%", invited.getName())
                     .replace("%this_owner%", guild.getMember(guild.getUuid()).getName())
             );
             guild.getAllUsers().forEach(a -> {
                 if (a.equals(inviter)) return;
                 ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().guildsTimeoutInviteMembers()
                         .replace("%this_other%", invited.getName())
-                        .replace("%this_sender%", invited.getName())
+                        .replace("%this_sender%", inviter.getName())
+                        .replace("%this_target%", invited.getName())
                         .replace("%this_owner%", guild.getMember(guild.getUuid()).getName())
                 );
             });
@@ -52,19 +55,22 @@ public class InviteTicker<T extends SavableGroup> extends ModuleRunnable impleme
             SavableParty party = (SavableParty) group;
             ModuleUtils.sendMessage(inviter, StreamlineGroups.getMessages().partiesTimeoutInviteSender()
                     .replace("%this_other%", invited.getName())
-                    .replace("%this_sender%", invited.getName())
+                    .replace("%this_sender%", inviter.getName())
+                    .replace("%this_target%", invited.getName())
                     .replace("%this_owner%", party.getMember(party.getUuid()).getName())
             );
             ModuleUtils.sendMessage(invited, StreamlineGroups.getMessages().partiesTimeoutInviteOther()
                     .replace("%this_other%", invited.getName())
-                    .replace("%this_sender%", invited.getName())
+                    .replace("%this_sender%", inviter.getName())
+                    .replace("%this_target%", invited.getName())
                     .replace("%this_owner%", party.getMember(party.getUuid()).getName())
             );
             party.getAllUsers().forEach(a -> {
                 if (a.equals(inviter)) return;
                 ModuleUtils.sendMessage(a, StreamlineGroups.getMessages().partiesTimeoutInviteMembers()
                         .replace("%this_other%", invited.getName())
-                        .replace("%this_sender%", invited.getName())
+                        .replace("%this_sender%", inviter.getName())
+                        .replace("%this_target%", invited.getName())
                         .replace("%this_owner%", party.getMember(party.getUuid()).getName())
                 );
             });

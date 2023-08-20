@@ -476,13 +476,15 @@ public class GuildCommand extends ModuleCommand {
                 });
                 return names;
             }
+
+            if (strings[0].equalsIgnoreCase("accept") || strings[0].equalsIgnoreCase("deny")
+                    || strings[0].equalsIgnoreCase("invite")) {
+                return ModuleUtils.getOnlinePlayerNames();
+            }
         }
 
         if (strings.length == 3) {
-            if (strings[0].equalsIgnoreCase("promote") || strings[0].equalsIgnoreCase("demote")
-                    || strings[0].equalsIgnoreCase("accept") || strings[0].equalsIgnoreCase("deny")
-                    || strings[0].equalsIgnoreCase("invite") || strings[0].equalsIgnoreCase("create-as")
-                    || strings[0].equalsIgnoreCase("rename-as") || strings[0].equalsIgnoreCase("chat-as")) {
+            if (strings[0].equalsIgnoreCase("create-as") || strings[0].equalsIgnoreCase("rename-as") || strings[0].equalsIgnoreCase("chat-as")) {
                 if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
                     return ModuleUtils.getOnlinePlayerNames();
                 }

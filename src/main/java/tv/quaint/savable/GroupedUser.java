@@ -59,9 +59,13 @@ public class GroupedUser extends SavableResource {
     @Override
     public void saveAll() {
         if (associatedGroups == null) return;
-        associatedGroups.forEach((a, b) -> {
-            getStorageResource().write("associated." + a.getSimpleName(), b);
-        });
+        try {
+            associatedGroups.forEach((a, b) -> {
+                getStorageResource().write("associated." + a.getSimpleName(), b);
+            });
+        } catch (Exception e) {
+            // do nothing
+        }
         getStorageResource().sync();
     }
 
