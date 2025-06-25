@@ -104,6 +104,10 @@ parties:
   list:
     main: "&7&l----+ &5Party List &7+----%this_for_roles%"
     role: "%newline%%this_role_name%&8: %this_role_members%"
+  kick:
+    sender: "&dYou &cremoved %streamline_parse_%this_target%:::*/*streamline_user_formatted*/*% &efrom %streamline_parse_%this_owner%:::*/*streamline_user_formatted*/*%&8'&es party&8!"
+    members: "%streamline_parse_%this_target%:::*/*streamline_user_formatted*/*% &cwas removed from %streamline_parse_%this_owner%:::*/*streamline_user_formatted*/*%&8'&es party&8!"
+    other: "&dYou &cwere removed from %streamline_parse_%this_owner%:::*/*streamline_user_formatted*/*%&8'&es &eparty&8!"
   chat: "&5Party &7&l> &d%streamline_parse_%this_sender%:::*/*streamline_user_formatted*/*%&8: &f%this_message%"
 
 placeholders:

@@ -1,8 +1,8 @@
 package host.plas.configs;
 
-import net.streamline.api.configs.ModularizedConfig;
+import gg.drak.thebase.storage.StorageUtils;
+import singularity.configs.ModularizedConfig;
 import host.plas.StreamlineGroups;
-import tv.quaint.storage.StorageUtils;
 
 import java.util.HashMap;
 
@@ -20,8 +20,6 @@ public class Configs extends ModularizedConfig {
             getResource().remove("grouped-users.saving.databases");
         }
 
-        savingUse();
-
         getOrSetDefault("groups.base.maximum", new HashMap<>());
         getOrSetDefault("groups.party.maximum", new HashMap<>());
         getOrSetDefault("groups.guild.maximum", new HashMap<>());
@@ -34,12 +32,6 @@ public class Configs extends ModularizedConfig {
         guildPayoutExperienceEvery();
         guildStartingLevel();
         guildLevelingEquation();
-    }
-
-    public StorageUtils.SupportedStorageType savingUse() {
-        reloadResource();
-
-        return getResource().getEnum("groups.saving.use", StorageUtils.SupportedStorageType.class);
     }
 
     public int baseMax(String group) {

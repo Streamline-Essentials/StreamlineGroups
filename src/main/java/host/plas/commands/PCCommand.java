@@ -1,11 +1,11 @@
 package host.plas.commands;
 
-import net.streamline.api.command.ModuleCommand;
-import net.streamline.api.modules.ModuleUtils;
-import net.streamline.api.savables.users.StreamlineUser;
+import gg.drak.thebase.utils.StringUtils;
+import singularity.command.ModuleCommand;
+import singularity.modules.ModuleUtils;
+import singularity.data.console.CosmicSender;
 import host.plas.StreamlineGroups;
-import host.plas.savable.GroupManager;
-import tv.quaint.utils.StringUtils;
+import host.plas.data.GroupManager;
 
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -19,17 +19,17 @@ public class PCCommand extends ModuleCommand {
     }
 
     @Override
-    public void run(StreamlineUser streamlineUser, String[] strings) {
+    public void run(CosmicSender CosmicSender, String[] strings) {
         if (strings.length > 0) {
             String message = StringUtils.argsToString(strings);
-            GroupManager.chatParty(streamlineUser, streamlineUser, message);
+            GroupManager.chatParty(CosmicSender, CosmicSender, message);
         } else {
-            ModuleUtils.sendMessage(streamlineUser, errorsNoMessage);
+            ModuleUtils.sendMessage(CosmicSender, errorsNoMessage);
         }
     }
 
     @Override
-    public ConcurrentSkipListSet<String> doTabComplete(StreamlineUser streamlineUser, String[] strings) {
+    public ConcurrentSkipListSet<String> doTabComplete(CosmicSender CosmicSender, String[] strings) {
         return new ConcurrentSkipListSet<>();
     }
 }

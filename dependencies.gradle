@@ -1,0 +1,19 @@
+ext {
+    IMPL = [
+    ]
+    SHADOW = [
+    ]
+    ANNO = [
+    ]
+    COMP_ONLY = [
+            'com.github.Server-Utilities:TheBase:master-SNAPSHOT',
+            'com.github.Streamline-Essentials.StreamlineCore:StreamlineCore-API:master-SNAPSHOT',
+            'com.github.Streamline-Essentials.StreamlineCore:StreamlineCore-BAPI:master-SNAPSHOT',
+    ]
+    FILES = [
+    ]
+    OTHER_PLUGINS = [
+            'me.clip:placeholderapi:2.11.6',
+            'net.luckperms:api:5.4',
+    ]
+}

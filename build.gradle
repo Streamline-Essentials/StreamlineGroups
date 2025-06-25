@@ -1,33 +1,81 @@
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'io.freefair.lombok' version '8.10.2'
 }
 
 group properties['group']
 version properties['version']
 
+ext {
+    deps = ""
+    StringBuilder builder = new StringBuilder()
+
+    int i = 0
+    List<String> list = properties['pf.dependencies'].toString().split(", ")
+    for (String s : list) {
+        if (i == list.size() - 1) {
+            builder.append(s)
+        } else {
+            builder.append(s).append(", ")
+        }
+        i ++
+    }
+
+    deps = builder.toString()
+
+    needs_bapi = false
+
+    String include_bapi = rootProject.properties.get('include-bapi', "false");
+
+    if (include_bapi.toBoolean()) {
+        needs_bapi = true
+    }
+}
+
 repositories {
     mavenCentral()
+    mavenLocal()
+    maven {
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+
+        // As of Gradle 5.1, you can limit this to only those
+        // dependencies you expect from it
+        content {
+            includeGroup 'org.bukkit'
+            includeGroup 'org.spigotmc'
+        }
+    }
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
     maven { url = 'https://oss.sonatype.org/content/repositories/central' }
+    maven {
+        name = "sonatype"
+        url = "https://oss.sonatype.org/content/groups/public/"
+    }
     maven { url = 'https://jitpack.io' }
+    maven {
+        name = "placeholderapi"
+        url = "https://repo.extendedclip.com/content/repositories/placeholderapi/"
+    }
 }
 
 dependencies {
-    // The Base
-    compileOnly 'com.github.server-utilities:TheBase:master-SNAPSHOT'
-    annotationProcessor 'com.github.server-utilities:TheBase:master-SNAPSHOT'
-
     // LuckPerms
     compileOnly 'net.luckperms:api:5.4'
 
-    // StreamlineCore
-    compileOnly 'com.github.streamline-essentials.StreamlineCore:StreamlineCore-API:main-SNAPSHOT'
-    annotationProcessor 'com.github.streamline-essentials.StreamlineCore:StreamlineCore-API:main-SNAPSHOT'
+    // PlaceholderAPI
+    compileOnly 'me.clip:placeholderapi:2.11.6'
 
-    if (properties['include-bapi']) {
-        compileOnly 'com.github.streamline-essentials.StreamlineCore:StreamlineCore-BAPI:main-SNAPSHOT'
-        annotationProcessor 'com.github.streamline-essentials.StreamlineCore:StreamlineCore-BAPI:main-SNAPSHOT'
+    // Redis
+    implementation 'redis.clients:jedis:4.3.0'
+    shadow 'redis.clients:jedis:4.3.0'
+
+    // StreamlineCore
+    boolean includeBapi = rootProject.properties['include-bapi'].toString().toBoolean()
+    if (includeBapi) {
+        annotationProcessor(compileOnly("com.github.Streamline-Essentials.StreamlineCore:StreamlineCore-BAPI:${rootProject.properties['streamline.version'] ?: 'master-SNAPSHOT'}"))
+    } else {
+        annotationProcessor(compileOnly("com.github.Streamline-Essentials.StreamlineCore:StreamlineCore-API:${rootProject.properties['streamline.version'] ?: 'master-SNAPSHOT'}"))
     }
 }
 
@@ -38,14 +86,14 @@ java {
 
 shadowJar {
     manifest {
-        attributes 'Plugin-Class': rootProject.properties['plugin-class']
-        attributes 'Plugin-Id': rootProject.properties['plugin-id']
-        attributes 'Plugin-Version': rootProject.properties['version']
-        attributes 'Plugin-Requires': rootProject.properties['plugin-requires']
-        attributes 'Plugin-Dependencies': rootProject.properties['plugin-dependencies']
-        attributes 'Plugin-Description': rootProject.properties['plugin-description']
-        attributes 'Plugin-Provider': rootProject.properties['plugin-provider']
-        attributes 'Plugin-License': rootProject.properties['plugin-license']
+        attributes 'Plugin-Class': rootProject.properties['pf.class'].toString() + '.' + rootProject.name.toString()
+        attributes 'Plugin-Id': rootProject.properties['pf.id'].toString()
+        attributes 'Plugin-Version': rootProject.version.toString()
+        attributes 'Plugin-Requires': ( rootProject.properties['pf.requires'].toString() == 'none' ? '' : rootProject.properties['pf.requires'].toString() )
+        attributes 'Plugin-Dependencies': ( rootProject.properties['pf.dependencies'].toString() == 'none' ? '' : rootProject.properties['pf.dependencies'].toString() )
+        attributes 'Plugin-Description': rootProject.properties['pf.description'].toString()
+        attributes 'Plugin-Provider': rootProject.properties['pf.provider'].toString()
+        attributes 'Plugin-License': rootProject.properties['pf.license'].toString()
     }
 
     archiveFileName = project.name + '-' + project.version + '.jar'
@@ -58,6 +106,6 @@ artifacts {
 }
 
 wrapper {
-    gradleVersion = '8.6'
+    gradleVersion = '8.9'
     distributionType = Wrapper.DistributionType.BIN
 }

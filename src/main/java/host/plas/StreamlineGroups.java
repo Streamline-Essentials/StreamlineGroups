@@ -1,7 +1,5 @@
 package host.plas;
 
-import host.plas.commands.GCCommand;
-import host.plas.commands.GuildCommand;
 import host.plas.commands.PCCommand;
 import host.plas.commands.PartyCommand;
 import host.plas.configs.Configs;
@@ -9,51 +7,36 @@ import host.plas.configs.DefaultRoles;
 import host.plas.configs.Messages;
 import host.plas.listeners.MainListener;
 import host.plas.placeholders.GroupsExpansion;
-import host.plas.savable.GroupManager;
-import host.plas.savable.GroupedUser;
-import host.plas.savable.guilds.SavableGuild;
-import host.plas.savable.parties.SavableParty;
-import host.plas.timers.GroupSaver;
-import host.plas.timers.GroupSyncer;
-import host.plas.timers.GuildPayout;
-import host.plas.timers.UserSaver;
+import host.plas.data.GroupManager;
 import lombok.Getter;
-import net.streamline.api.modules.ModuleUtils;
-import net.streamline.api.modules.SimpleModule;
-import net.streamline.api.utils.UserUtils;
-import net.streamline.thebase.lib.pf4j.PluginWrapper;
+import lombok.Setter;
+import org.pf4j.PluginWrapper;
+import singularity.modules.ModuleUtils;
+import singularity.modules.SimpleModule;
 
 import java.io.File;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 public class StreamlineGroups extends SimpleModule {
-    @Getter
-    static StreamlineGroups instance;
+    @Getter @Setter
+    private static StreamlineGroups instance;
 
-    @Getter
-    static File usersFolder;
-    @Getter
-    static File groupsFolder;
+    @Getter @Setter
+    private static File usersFolder;
+    @Getter @Setter
+    private static File groupsFolder;
 
-    @Getter
-    static Configs configs;
-    @Getter
-    static Messages messages;
-    @Getter
-    static DefaultRoles defaultRoles;
+    @Getter @Setter
+    private static Configs configs;
+    @Getter @Setter
+    private static Messages messages;
+    @Getter @Setter
+    private static DefaultRoles defaultRoles;
 
-    @Getter
-    static GroupSaver groupSaver;
-    @Getter
-    static UserSaver userSaver;
-    @Getter
-    static GuildPayout guildPayout;
+    @Getter @Setter
+    private static MainListener mainListener;
 
-    @Getter
-    static MainListener mainListener;
-
-    @Getter
-    static GroupsExpansion groupsExpansion;
+    @Getter @Setter
+    private static GroupsExpansion groupsExpansion;
 
     public StreamlineGroups(PluginWrapper wrapper) {
         super(wrapper);
@@ -71,23 +54,6 @@ public class StreamlineGroups extends SimpleModule {
         messages = new Messages();
         defaultRoles = new DefaultRoles();
 
-        groupSaver = new GroupSaver();
-        userSaver = new UserSaver();
-        guildPayout = new GuildPayout();
-
-        new GroupSyncer();
-
-        GroupManager.registerClass(SavableGuild.class,  c -> {
-            SavableGuild guild = GroupManager.getOrGetGuild(c);
-            if (guild == null) return;
-            GroupManager.loadGroup(guild);
-        });
-        GroupManager.registerClass(SavableParty.class, c -> {
-            SavableParty party = GroupManager.getOrGetParty(c);
-            if (party == null) return;
-            GroupManager.loadGroup(party);
-        });
-
         usersFolder = new File(getDataFolder(), "users" + File.separator);
         groupsFolder = new File(getDataFolder(), "groups" + File.separator);
         usersFolder.mkdirs();
@@ -98,35 +64,18 @@ public class StreamlineGroups extends SimpleModule {
 
         getGroupsExpansion().init();
 
-        GroupManager.getOrGetGroupedUser(UserUtils.getConsole().getUuid());
-
-        UserUtils.getLoadedUsersSet().forEach(a -> {
-            GroupedUser user = GroupManager.getOrGetGroupedUser(a.getUuid());
-            GroupManager.loadGroupedUser(user);
-        });
-
-        new GuildCommand(this).register();
         new PartyCommand(this).register();
-        new GCCommand().register();
         new PCCommand().register();
     }
 
     @Override
     public void onDisable() {
-        GroupManager.getLoadedGroups().forEach((clazz, savableGroups) -> {
-            savableGroups.forEach(savableGroup -> {
-                savableGroup.saveAll();
-                savableGroup.getStorageResource().push();
-                GroupManager.syncGroup(savableGroup);
-            });
-            GroupManager.getLoadedGroups().put(clazz, new ConcurrentSkipListSet<>());
+        GroupManager.getLoadedParties().forEach((party) -> {
+            GroupManager.disbandParty(party.getOwner(), party.getOwner());
         });
-        GroupManager.getLoadedGroupedUsers().forEach(groupedUser -> {
-            groupedUser.saveAll();
-            groupedUser.getStorageResource().push();
-            GroupManager.syncUser(groupedUser);
-        });
-        GroupManager.setLoadedGroupedUsers(new ConcurrentSkipListSet<>());
+
+        GroupManager.getLoadedParties().clear();
+
         getGroupsExpansion().stop();
     }
 }

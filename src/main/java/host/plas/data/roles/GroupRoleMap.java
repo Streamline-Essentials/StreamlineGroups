@@ -1,13 +1,12 @@
-package host.plas.savable;
+package host.plas.data.roles;
 
-import net.streamline.api.modules.ModuleUtils;
-import net.streamline.api.savables.users.StreamlineUser;
-import tv.quaint.thebase.lib.re2j.Matcher;
+import gg.drak.thebase.lib.re2j.Matcher;
+import gg.drak.thebase.utils.MatcherUtils;
+import host.plas.data.Party;
+import singularity.data.console.CosmicSender;
 import host.plas.StreamlineGroups;
-import host.plas.savable.flags.GroupFlag;
-import tv.quaint.utils.MatcherUtils;
+import host.plas.data.flags.GroupFlag;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -16,85 +15,14 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GroupRoleMap {
-    public SavableGroup group;
-    public ConcurrentSkipListMap<SavableGroupRole, ConcurrentSkipListSet<StreamlineUser>> roles = new ConcurrentSkipListMap<>();
+    public Party group;
+    public ConcurrentSkipListMap<SavableGroupRole, ConcurrentSkipListSet<CosmicSender>> roles = new ConcurrentSkipListMap<>();
 
-    public GroupRoleMap(SavableGroup group) {
+    public GroupRoleMap(Party group) {
         this.group = group;
-        get();
     }
 
-    public List<String> getIdentifiers() {
-        List<String> r = new ArrayList<>();
-
-        for (String k : this.group.getStorageResource().getMap().keySet()) {
-            if (! k.startsWith("roles.")) continue;
-            try {
-                String toAdd = k.replace("roles.", "").split("\\.", 2)[0];
-                if (r.contains(toAdd)) continue;
-                r.add(toAdd);
-            } catch (Exception e) {
-                // do nothing.
-            }
-        }
-
-        return r;
-    }
-
-    public void get() {
-        getIdentifiers().forEach(a -> {
-            int priority = this.group.getStorageResource().getOrSetDefault("roles." + a + ".priority", 1);
-            int max = this.group.getStorageResource().getOrSetDefault("roles." + a + ".max", -1);
-            String name = this.group.getStorageResource().getOrSetDefault("roles." + a + ".name", "&cNAME");
-            ConcurrentSkipListSet<String> flags = new ConcurrentSkipListSet<>(this.group.getStorageResource().getOrSetDefault("roles." + a + ".flags", new ArrayList<>()));
-            ConcurrentSkipListSet<String> memberUUIDs = new ConcurrentSkipListSet<>(this.group.getStorageResource().getOrSetDefault("roles." + a + ".members", new ArrayList<>()));
-
-            SavableGroupRole role = new SavableGroupRole(a, priority, name, max, flags);
-            ConcurrentSkipListSet<StreamlineUser> users = new ConcurrentSkipListSet<>();
-            memberUUIDs.forEach(act -> {
-                users.add(ModuleUtils.getOrGetUser(act));
-            });
-            addRole(role, users);
-        });
-
-        if (roles.isEmpty()) {
-            try {
-                StreamlineGroups.getDefaultRoles().getDefaultRolesOf(this.group.getClass()).forEach(a -> {
-                    addRole(new SavableGroupRole(a.getIdentifier(), a.getPriority(), a.getName(), a.getMax(), a.getFlags()));
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void save() {
-        if (roles.isEmpty()) {
-            try {
-                StreamlineGroups.getDefaultRoles().getDefaultRolesOf(this.group.getClass()).forEach(a -> {
-                    addRole(new SavableGroupRole(a.getIdentifier(), a.getPriority(), a.getName(), a.getMax(), a.getFlags()));
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return;
-        }
-
-        getRoles().forEach(a -> {
-            this.group.set("roles." + a.getIdentifier() + ".priority", a.getPriority());
-            this.group.set("roles." + a.getIdentifier() + ".max", a.getMax());
-            this.group.set("roles." + a.getIdentifier() + ".name", a.getName());
-            this.group.set("roles." + a.getIdentifier() + ".flags", a.getFlags());
-
-            List<String> memberUUIDs = new ArrayList<>();
-            getUsersOf(a).forEach(act -> {
-                memberUUIDs.add(act.getUuid());
-            });
-            this.group.set("roles." + a.getIdentifier() + ".members", memberUUIDs);
-        });
-    }
-
-    public void addRole(SavableGroupRole role, ConcurrentSkipListSet<StreamlineUser> users) {
+    public void addRole(SavableGroupRole role, ConcurrentSkipListSet<CosmicSender> users) {
         roles.put(role, users);
     }
 
@@ -102,15 +30,15 @@ public class GroupRoleMap {
         addRole(role, new ConcurrentSkipListSet<>());
     }
 
-    public ConcurrentSkipListSet<StreamlineUser> getUsersOf(SavableGroupRole role) {
-        ConcurrentSkipListSet<StreamlineUser> users = roles.get(role);
+    public ConcurrentSkipListSet<CosmicSender> getUsersOf(SavableGroupRole role) {
+        ConcurrentSkipListSet<CosmicSender> users = roles.get(role);
         if (users == null) return new ConcurrentSkipListSet<>();
         return users;
     }
 
-    public void applyUser(SavableGroupRole role, StreamlineUser user) {
+    public void applyUser(SavableGroupRole role, CosmicSender user) {
         removeUserAll(user);
-        ConcurrentSkipListSet<StreamlineUser> users = getUsersOf(role);
+        ConcurrentSkipListSet<CosmicSender> users = getUsersOf(role);
         users.add(user);
     }
 
@@ -122,27 +50,22 @@ public class GroupRoleMap {
         return r;
     }
 
-    public ConcurrentSkipListSet<StreamlineUser> getAllUsers() {
-        ConcurrentSkipListSet<StreamlineUser> r = new ConcurrentSkipListSet<>();
+    public ConcurrentSkipListSet<CosmicSender> getAllUsers() {
+        ConcurrentSkipListSet<CosmicSender> r = new ConcurrentSkipListSet<>();
 
-        getRoles().forEach(a -> {
-            getUsersOf(a).forEach(act -> {
-                if (r.contains(act)) return;
-                r.add(act);
-            });
-        });
+        getRoles().forEach(role -> r.addAll(getUsersOf(role)));
 
         return r;
     }
 
-    public boolean hasUser(StreamlineUser user) {
+    public boolean hasUser(CosmicSender user) {
         for (SavableGroupRole role : getRoles()) {
             if (roleHasUser(role, user)) return true;
         }
         return false;
     }
 
-    public boolean roleHasUser(SavableGroupRole role, StreamlineUser user) {
+    public boolean roleHasUser(SavableGroupRole role, CosmicSender user) {
         AtomicBoolean r = new AtomicBoolean(false);
 
         getUsersOf(role).forEach(a -> {
@@ -152,7 +75,15 @@ public class GroupRoleMap {
         return r.get();
     }
 
-    public void removeUserAll(StreamlineUser user) {
+    public void clearRoles() {
+        roles.clear();
+    }
+
+    public void addAllRoles(ConcurrentSkipListSet<SavableGroupRole> roles) {
+        roles.forEach(this::addRole);
+    }
+
+    public void removeUserAll(CosmicSender user) {
         removeUserAll(user.getUuid());
     }
 
@@ -171,13 +102,13 @@ public class GroupRoleMap {
     public static ConcurrentSkipListMap<Float, SavableGroupRole> getRolesOrdered(ConcurrentSkipListSet<SavableGroupRole> roles) {
         ConcurrentSkipListMap<Float, SavableGroupRole> r = new ConcurrentSkipListMap<>();
 
-        for (SavableGroupRole role : roles) {
+        roles.forEach(role -> {
             float num = role.getPriority();
             while (r.containsKey(num)) {
-                num += 0.001;
+                num += 0.001F;
             }
             r.put(num, role);
-        }
+        });
 
         return r;
     }
@@ -189,32 +120,36 @@ public class GroupRoleMap {
         return null;
     }
 
-    public SavableGroupRole getRoleOf(StreamlineUser user) {
+    public SavableGroupRole getRoleOf(CosmicSender user) {
         for (SavableGroupRole role : getRoles()) {
             if (roleHasUser(role, user)) return role;
         }
         return null;
     }
 
-    public SavableGroupRole getNextRoleOf(StreamlineUser user) {
+    public SavableGroupRole getNextRoleOf(CosmicSender user) {
         SavableGroupRole current = getRoleOf(user);
         if (current.equals(getRolesOrdered().lastEntry().getValue())) return null;
 
         return getRolesOrdered().higherEntry(getPriorityOfRole(current)).getValue();
     }
 
-    public SavableGroupRole getPreviousRoleOf(StreamlineUser user) {
+    public SavableGroupRole getPreviousRoleOf(CosmicSender user) {
         SavableGroupRole current = getRoleOf(user);
         if (current.equals(getRolesOrdered().firstEntry().getValue())) return null;
 
         return getRolesOrdered().lowerEntry(getPriorityOfRole(current)).getValue();
     }
 
-    public void addUser(StreamlineUser user) {
+    public void addUser(CosmicSender user) {
         promote(user);
     }
 
-    public void promote(StreamlineUser user) {
+    public void promote(CosmicSender user) {
+//        if (getRoles().isEmpty()) {
+//            SavableGroupRole role =
+//        }
+
         if (getRoleOf(user) == null) {
             applyUser(getRolesOrdered().firstEntry().getValue(), user);
             return;
@@ -229,7 +164,7 @@ public class GroupRoleMap {
         applyUser(newRole, user);
     }
 
-    public void demote(StreamlineUser user) {
+    public void demote(CosmicSender user) {
         if (getRoleOf(user) == null) applyUser(getRolesOrdered().firstEntry().getValue(), user);
 
 //        SavableGroupRole oldRole = getRoleOf(user);
@@ -239,7 +174,7 @@ public class GroupRoleMap {
         applyUser(newRole, user);
     }
 
-    public boolean userHas(StreamlineUser user, GroupFlag flag) {
+    public boolean userHas(CosmicSender user, GroupFlag flag) {
         return getRoleOf(user).hasFlag(flag);
     }
 
@@ -307,7 +242,7 @@ public class GroupRoleMap {
         return builder.toString();
     }
 
-    public static GroupRoleMap fromString(SavableGroup group, String string) {
+    public static GroupRoleMap fromString(Party group, String string) {
         GroupRoleMap map = new GroupRoleMap(group);
 
         Matcher matcher = MatcherUtils.matcherBuilder("\\[(\\d+):(identifier=(.*),name=(.*),priority=(.*),max=(.*),flags=(.*))\\]", string);
@@ -332,10 +267,10 @@ public class GroupRoleMap {
         return map;
     }
 
-    public static <T extends SavableGroup> String getDefaultRoleString(Class<T> tClass) {
+    public static String getDefaultRoleString() {
         try {
             ConcurrentSkipListSet<SavableGroupRole> roles = new ConcurrentSkipListSet<>();
-            StreamlineGroups.getDefaultRoles().getDefaultRolesOf(tClass).forEach(a -> {
+            StreamlineGroups.getDefaultRoles().getDefaultRoles().forEach(a -> {
                 roles.add(new SavableGroupRole(a.getIdentifier(), a.getPriority(), a.getName(), a.getMax(), a.getFlags()));
             });
 
@@ -344,5 +279,18 @@ public class GroupRoleMap {
             e.printStackTrace();
             return "[]";
         }
+    }
+
+    public static ConcurrentSkipListSet<SavableGroupRole> getDefaultRoles() {
+        ConcurrentSkipListSet<SavableGroupRole> roles = new ConcurrentSkipListSet<>();
+        StreamlineGroups.getDefaultRoles().getDefaultRoles().forEach(a -> {
+            try {
+                roles.add(new SavableGroupRole(a.getIdentifier(), a.getPriority(), a.getName(), a.getMax(), a.getFlags()));
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        });
+
+        return roles;
     }
 }

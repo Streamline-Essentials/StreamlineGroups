@@ -1,27 +1,26 @@
 package host.plas.commands;
 
+import host.plas.data.Party;
 import lombok.Getter;
-import net.streamline.api.command.ModuleCommand;
-import net.streamline.api.configs.given.MainMessagesHandler;
-import net.streamline.api.modules.ModuleUtils;
-import net.streamline.api.modules.StreamlineModule;
-import net.streamline.api.savables.users.StreamlineUser;
+import singularity.command.ModuleCommand;
+import singularity.configs.given.MainMessagesHandler;
+import singularity.modules.CosmicModule;
+import singularity.modules.ModuleUtils;
+import singularity.data.console.CosmicSender;
 import host.plas.StreamlineGroups;
-import host.plas.savable.GroupManager;
-import host.plas.savable.GroupedUser;
-import host.plas.savable.flags.GroupFlag;
-import host.plas.savable.parties.SavableParty;
+import host.plas.data.GroupManager;
+import host.plas.data.flags.GroupFlag;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 public class PartyCommand extends ModuleCommand {
     @Getter
     private final String useOther;
 
-    public PartyCommand(StreamlineModule module) {
+    public PartyCommand(CosmicModule module) {
         super(module,
                 "party",
                 "streamline.command.party.default",
@@ -32,7 +31,7 @@ public class PartyCommand extends ModuleCommand {
     }
 
     @Override
-    public void run(StreamlineUser sender, String[] strings) {
+    public void run(CosmicSender sender, String[] strings) {
         if (strings[0].equals("")) {
             ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.ARGUMENTS_TOO_FEW.get());
             return;
@@ -55,9 +54,8 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                StreamlineUser other = ModuleUtils.getOrGetUserByName(strings[1]);
-
-                if (other == null) {
+                Optional<CosmicSender> other = ModuleUtils.getOrGetUserByName(strings[1]);
+                if (other.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -67,7 +65,7 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupManager.listParty(sender, other);
+                GroupManager.listParty(sender, other.get());
                 break;
             case "invite":
                 if (strings.length < 2) {
@@ -75,21 +73,21 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                StreamlineUser otherInvite = ModuleUtils.getOrGetUserByName(strings[1]);
+                Optional<CosmicSender> otherInvite = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (otherInvite == null) {
+                if (otherInvite.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
                 if (strings.length == 2) {
-                    GroupManager.invitePlayerParty(sender, sender, otherInvite);
+                    GroupManager.invitePlayerParty(sender, sender, otherInvite.get());
                     return;
                 }
 
-                StreamlineUser otherOther = ModuleUtils.getOrGetUserByName(strings[2]);
+                Optional<CosmicSender> otherOther = ModuleUtils.getOrGetUserByName(strings[2]);
 
-                if (otherOther == null) {
+                if (otherOther.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -99,14 +97,13 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser user = GroupManager.getOrGetGroupedUser(otherOther.getUuid());
-                SavableParty party = user.getGroup(SavableParty.class);
-                if (party == null) {
+                Optional<Party> optional = GroupManager.get(otherOther.get());
+                if (optional.isEmpty()) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.invitePlayerParty(sender, otherInvite, otherOther);
+                GroupManager.invitePlayerParty(sender, otherInvite.get(), otherOther.get());
                 break;
             case "accept":
                 if (strings.length < 2) {
@@ -114,21 +111,21 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                StreamlineUser otherAccept = ModuleUtils.getOrGetUserByName(strings[1]);
+                Optional<CosmicSender> otherAccept = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (otherAccept == null) {
+                if (otherAccept.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
                 if (strings.length == 2) {
-                    GroupManager.acceptInviteParty(sender, otherAccept, sender);
+                    GroupManager.acceptInviteParty(sender, otherAccept.get(), sender);
                     return;
                 }
 
-                StreamlineUser otherOtherAccept = ModuleUtils.getOrGetUserByName(strings[2]);
+                Optional<CosmicSender> otherOtherAccept = ModuleUtils.getOrGetUserByName(strings[2]);
 
-                if (otherOtherAccept == null) {
+                if (otherOtherAccept.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -137,15 +134,14 @@ public class PartyCommand extends ModuleCommand {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
                     return;
                 }
-
-                GroupedUser userAccept = GroupManager.getOrGetGroupedUser(otherOtherAccept.getUuid());
-                SavableParty partyAccept = userAccept.getGroup(SavableParty.class);
-                if (partyAccept == null) {
+                
+                Optional<Party> otherOptional = GroupManager.get(otherOtherAccept.get());
+                if (otherOptional.isEmpty()) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.acceptInviteParty(sender, otherAccept, otherOtherAccept);
+                GroupManager.acceptInviteParty(sender, otherAccept.get(), otherOtherAccept.get());
                 break;
             case "deny":
                 if (strings.length < 2) {
@@ -153,21 +149,21 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                StreamlineUser otherDeny = ModuleUtils.getOrGetUserByName(strings[1]);
+                Optional<CosmicSender> otherDeny = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (otherDeny == null) {
+                if (otherDeny.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
                 if (strings.length == 2) {
-                    GroupManager.denyInviteParty(sender, otherDeny, sender);
+                    GroupManager.denyInviteParty(sender, otherDeny.get(), sender);
                     return;
                 }
 
-                StreamlineUser otherOtherDeny = ModuleUtils.getOrGetUserByName(strings[2]);
+                Optional<CosmicSender> otherOtherDeny = ModuleUtils.getOrGetUserByName(strings[2]);
 
-                if (otherOtherDeny == null) {
+                if (otherOtherDeny.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -176,15 +172,14 @@ public class PartyCommand extends ModuleCommand {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
                     return;
                 }
-
-                GroupedUser userDeny = GroupManager.getOrGetGroupedUser(otherOtherDeny.getUuid());
-                SavableParty partyDeny = userDeny.getGroup(SavableParty.class);
-                if (partyDeny == null) {
+                
+                Optional<Party> otherOtherOptional = GroupManager.get(otherOtherDeny.get());
+                if (otherOtherOptional.isEmpty()) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.denyInviteParty(sender, otherDeny, otherOtherDeny);
+                GroupManager.denyInviteParty(sender, otherDeny.get(), otherOtherDeny.get());
                 break;
             case "disband":
                 if (strings.length < 2) {
@@ -192,9 +187,9 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                StreamlineUser otherDisband = ModuleUtils.getOrGetUserByName(strings[1]);
+                Optional<CosmicSender> otherDisband = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (otherDisband == null) {
+                if (otherDisband.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -203,15 +198,14 @@ public class PartyCommand extends ModuleCommand {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
                     return;
                 }
-
-                GroupedUser userDisband = GroupManager.getOrGetGroupedUser(otherDisband.getUuid());
-                SavableParty partyDisband = userDisband.getGroup(SavableParty.class);
-                if (partyDisband == null) {
+                
+                Optional<Party> partyDisband = GroupManager.get(otherDisband.get());
+                if (partyDisband.isEmpty()) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.disbandParty(sender, partyDisband.owner);
+                GroupManager.disbandParty(sender, partyDisband.get().getOwner());
                 break;
             case "promote":
                 if (strings.length < 2) {
@@ -219,21 +213,21 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                StreamlineUser otherPromote = ModuleUtils.getOrGetUserByName(strings[1]);
+                Optional<CosmicSender> otherPromote = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (otherPromote == null) {
+                if (otherPromote.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
                 if (strings.length == 2) {
-                    GroupManager.promoteParty(sender, sender, otherPromote);
+                    GroupManager.promoteParty(sender, sender, otherPromote.get());
                     return;
                 }
 
-                StreamlineUser otherOtherPromote = ModuleUtils.getOrGetUserByName(strings[2]);
+                Optional<CosmicSender> otherOtherPromote = ModuleUtils.getOrGetUserByName(strings[2]);
 
-                if (otherOtherPromote == null) {
+                if (otherOtherPromote.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -243,14 +237,13 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupedUser userPromote = GroupManager.getOrGetGroupedUser(otherOtherPromote.getUuid());
-                SavableParty partyPromote = userPromote.getGroup(SavableParty.class);
-                if (partyPromote == null) {
+                Optional<Party> partyPromote = GroupManager.get(otherOtherPromote.get());
+                if (partyPromote.isEmpty()) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.promoteParty(sender, otherPromote, otherOtherPromote);
+                GroupManager.promoteParty(sender, otherPromote.get(), otherOtherPromote.get());
                 break;
             case "demote":
                 if (strings.length < 2) {
@@ -258,21 +251,21 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                StreamlineUser otherDemote = ModuleUtils.getOrGetUserByName(strings[1]);
+                Optional<CosmicSender> otherDemote = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (otherDemote == null) {
+                if (otherDemote.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
                 if (strings.length == 2) {
-                    GroupManager.demoteParty(sender, sender, otherDemote);
+                    GroupManager.demoteParty(sender, sender, otherDemote.get());
                     return;
                 }
 
-                StreamlineUser otherOtherDemote = ModuleUtils.getOrGetUserByName(strings[2]);
+                Optional<CosmicSender> otherOtherDemote = ModuleUtils.getOrGetUserByName(strings[2]);
 
-                if (otherOtherDemote == null) {
+                if (otherOtherDemote.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -281,15 +274,14 @@ public class PartyCommand extends ModuleCommand {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.PERMISSIONS.get());
                     return;
                 }
-
-                GroupedUser userDemote = GroupManager.getOrGetGroupedUser(otherOtherDemote.getUuid());
-                SavableParty partyDemote = userDemote.getGroup(SavableParty.class);
-                if (partyDemote == null) {
+                
+                Optional<Party> partyDemote = GroupManager.get(otherOtherDemote.get());
+                if (partyDemote.isEmpty()) {
                     ModuleUtils.sendMessage(sender, StreamlineGroups.getMessages().errorsBaseNotInOther());
                     return;
                 }
 
-                GroupManager.demoteParty(sender, otherDemote, otherOtherDemote);
+                GroupManager.demoteParty(sender, otherDemote.get(), otherOtherDemote.get());
                 break;
             case "leave":
                 if (strings.length < 2) {
@@ -297,9 +289,9 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                StreamlineUser otherLeave = ModuleUtils.getOrGetUserByName(strings[1]);
+                Optional<CosmicSender> otherLeave = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (otherLeave == null) {
+                if (otherLeave.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
@@ -309,7 +301,7 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                GroupManager.leaveParty(sender, otherLeave);
+                GroupManager.leaveParty(sender, otherLeave.get());
                 break;
             case "chat":
                 if (strings.length < 2) {
@@ -332,16 +324,16 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                StreamlineUser otherChatAs = ModuleUtils.getOrGetUserByName(strings[1]);
+                Optional<CosmicSender> otherChatAs = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (otherChatAs == null) {
+                if (otherChatAs.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
                 String messageChatAs = ModuleUtils.argsToStringMinus(strings, 0, 1);
 
-                GroupManager.chatParty(sender, otherChatAs, messageChatAs);
+                GroupManager.chatParty(sender, otherChatAs.get(), messageChatAs);
                 break;
             case "create-as":
                 if (strings.length < 3) {
@@ -359,20 +351,22 @@ public class PartyCommand extends ModuleCommand {
                     return;
                 }
 
-                StreamlineUser otherCreateAs = ModuleUtils.getOrGetUserByName(strings[1]);
+                Optional<CosmicSender> otherCreateAs = ModuleUtils.getOrGetUserByName(strings[1]);
 
-                if (otherCreateAs == null) {
+                if (otherCreateAs.isEmpty()) {
                     ModuleUtils.sendMessage(sender, MainMessagesHandler.MESSAGES.INVALID.USER_OTHER.get());
                     return;
                 }
 
-                GroupManager.createParty(sender, otherCreateAs);
+                GroupManager.createParty(sender, otherCreateAs.get());
                 break;
         }
     }
 
     @Override
-    public ConcurrentSkipListSet<String> doTabComplete(StreamlineUser StreamlineUser, String[] strings) {
+    public ConcurrentSkipListSet<String> doTabComplete(CosmicSender sender, String[] strings) {
+        Optional<Party> optional = GroupManager.get(sender);
+        
         if (strings.length <= 1) {
             return new ConcurrentSkipListSet<>(List.of(
                     "create",
@@ -391,44 +385,42 @@ public class PartyCommand extends ModuleCommand {
         }
         if (strings.length == 2) {
             if (strings[0].equalsIgnoreCase("create-as")) {
-                if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
+                if (ModuleUtils.hasPermission(sender, this.useOther)) {
                     return ModuleUtils.getOnlinePlayerNames();
                 }
             }
             if (strings[0].equalsIgnoreCase("list") || strings[0].equalsIgnoreCase("disband")) {
-                if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
+                if (ModuleUtils.hasPermission(sender, this.useOther)) {
                     return ModuleUtils.getOnlinePlayerNames();
                 }
             }
             if (strings[0].equalsIgnoreCase("promote")) {
-                GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUuid());
-                SavableParty party = user.getGroup(SavableParty.class);
-                if (party == null) return ModuleUtils.getOnlinePlayerNames();
-                if (! party.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ConcurrentSkipListSet<>();
-                ConcurrentSkipListSet<StreamlineUser> users = party.getAllUsers();
-                party.groupRoleMap.rolesAbove(party.getRole(StreamlineUser)).forEach(a -> {
-                    users.removeAll(party.groupRoleMap.getUsersOf(a));
+                if (optional.isEmpty()) return ModuleUtils.getOnlinePlayerNames();
+                Party party = optional.get();
+                if (! party.userHasFlag(sender, GroupFlag.PROMOTE)) return new ConcurrentSkipListSet<>();
+                ConcurrentSkipListSet<CosmicSender> users = party.getAllUsers();
+                party.getGroupRoleMap().rolesAbove(party.getRole(sender)).forEach(a -> {
+                    users.removeAll(party.getGroupRoleMap().getUsersOf(a));
                 });
-                users.removeAll(party.groupRoleMap.getUsersOf(party.getRole(StreamlineUser)));
+                users.removeAll(party.getGroupRoleMap().getUsersOf(party.getRole(sender)));
                 ConcurrentSkipListSet<String> names = new ConcurrentSkipListSet<>();
                 users.forEach(a -> {
-                    names.add(a.getName());
+                    names.add(a.getCurrentName());
                 });
                 return names;
             }
             if (strings[0].equalsIgnoreCase("demote")) {
-                GroupedUser user = GroupManager.getOrGetGroupedUser(StreamlineUser.getUuid());
-                SavableParty party = user.getGroup(SavableParty.class);
-                if (party == null) return ModuleUtils.getOnlinePlayerNames();
-                if (! party.userHasFlag(StreamlineUser, GroupFlag.PROMOTE)) return new ConcurrentSkipListSet<>();
-                ConcurrentSkipListSet<StreamlineUser> users = party.getAllUsers();
-                party.groupRoleMap.rolesAbove(party.getRole(StreamlineUser)).forEach(a -> {
-                    users.removeAll(party.groupRoleMap.getUsersOf(a));
+                if (optional.isEmpty()) return ModuleUtils.getOnlinePlayerNames();
+                Party party = optional.get();
+                if (! party.userHasFlag(sender, GroupFlag.PROMOTE)) return new ConcurrentSkipListSet<>();
+                ConcurrentSkipListSet<CosmicSender> users = party.getAllUsers();
+                party.getGroupRoleMap().rolesAbove(party.getRole(sender)).forEach(a -> {
+                    users.removeAll(party.getGroupRoleMap().getUsersOf(a));
                 });
-                users.removeAll(party.groupRoleMap.getUsersOf(party.getRole(StreamlineUser)));
+                users.removeAll(party.getGroupRoleMap().getUsersOf(party.getRole(sender)));
                 ConcurrentSkipListSet<String> names = new ConcurrentSkipListSet<>();
                 users.forEach(a -> {
-                    names.add(a.getName());
+                    names.add(a.getCurrentName());
                 });
                 return names;
             }
@@ -441,7 +433,7 @@ public class PartyCommand extends ModuleCommand {
 
         if (strings.length == 3) {
             if (strings[0].equalsIgnoreCase("chat-as")) {
-                if (ModuleUtils.hasPermission(StreamlineUser, this.useOther)) {
+                if (ModuleUtils.hasPermission(sender, this.useOther)) {
                     return ModuleUtils.getOnlinePlayerNames();
                 }
             }

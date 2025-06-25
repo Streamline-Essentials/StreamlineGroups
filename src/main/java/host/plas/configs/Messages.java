@@ -1,8 +1,8 @@
 package host.plas.configs;
 
-import net.streamline.api.configs.ModularizedConfig;
+import singularity.configs.ModularizedConfig;
 import host.plas.StreamlineGroups;
-import host.plas.savable.flags.GroupFlag;
+import host.plas.data.flags.GroupFlag;
 
 import java.util.List;
 

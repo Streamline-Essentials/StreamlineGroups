@@ -1,4 +1,4 @@
-package host.plas.savable.flags;
+package host.plas.data.flags;
 
 import lombok.Getter;
 
